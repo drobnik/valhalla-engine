@@ -1,6 +1,6 @@
 module Main where
 
-import Lib
+import GameMain as V
 
 main :: IO ()
-main = someFunc
+main = V.gameMain
