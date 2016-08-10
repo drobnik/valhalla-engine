@@ -4,6 +4,8 @@ import Data.Time.Clock
 import FRP.Elerea.Simple
 import Control.Monad
 import Control.Concurrent
+import Text.Printf
+-- import Consts
 
 startTime :: Double
 startTime = 0.0
@@ -24,16 +26,23 @@ targetElapsedTime = 0.01666
 -- with performance?
 driveNetwork :: IO (IO () ) -- ^ Signal IO ()
              -> IO ()
-driveNetwork signal = {--runMaybeT--}forever $ do
-  startTime <- getCurrentTime
+driveNetwork signal = forever $ do
+  startTime <- getCurrentTime -- used for non-fixed gametime
   _         <- join signal
   endTime   <- getCurrentTime
-  if elapsedTime startTime endTime < 0
-    then putStrLn "Running slow.."
-    else threadDelay $ truncate $ 1e6 * targetElapsedTime
+--TODO: how to detect that application is running slow?
+  threadDelay $ truncate $ 1e6 * targetElapsedTime
 
 -- | Calculate difference between two clocks
 -- and convert it to double
 elapsedTime :: UTCTime -> UTCTime -> Double
-elapsedTime start end = timeStep - targetElapsedTime
-  where timeStep = undefined
+elapsedTime start end = timeStep
+  where timeStep = fromRational $ toRational $ diffUTCTime end start
+-- it is very ugly
+
+printTimer :: Double -> IO ()
+printTimer t = putStrLn $ printf "Time: %.5f" t
+
+-- update timer with a fixed value
+updateTimer :: Double -> Double
+updateTimer t = t + targetElapsedTime
