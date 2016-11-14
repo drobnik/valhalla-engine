@@ -36,7 +36,7 @@ initWinManager title' size pos = -- TODO \(mode, status) ->
   WindowManager { title = title'
                 , winSize = size
                 , winPos = pos
-                , displayMode = [DoubleBuffered]
+                , displayMode = [SingleBuffered]
                 , winStatus = Shown
                 }
 

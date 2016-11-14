@@ -1,4 +1,5 @@
 module GameMain where
+
 import Engine
 
 --import Timer
@@ -33,6 +34,7 @@ gameMain = do
 
   closeWindow-}
 
+gameMain :: IO ()
 gameMain = do
   let engine = sampleEngine
   runEngine engine

@@ -15,7 +15,8 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src, src/Sample/, src/Engine/
-  other-modules:       Engine
+  other-modules:       Engine, Render.WindowManager
+                     , Render.Utils
   exposed-modules:     GameMain
   build-depends:       base >= 4.7 && < 5
                      , OpenGL, GLUT, time

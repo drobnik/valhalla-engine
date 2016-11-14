@@ -1,1 +1,8 @@
 /.stack-work
+dist/build
+dist/package.conf.inplace
+*.o
+*.hi
+*.hs~
+\#*
+.#*

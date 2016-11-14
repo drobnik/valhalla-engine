@@ -3,7 +3,7 @@ import Graphics.UI.GLUT as GL
 
 data Renderer = Renderer
                 { mMode :: MatrixMode
-                , clearC :: Color
+                , clearC :: Color4 Float
                 }
 
 instance Graphic Renderer where
@@ -13,13 +13,13 @@ instance Graphic Renderer where
     loadIdentity
     ortho 0 1 0 1 (-1)1
 
-  sillyDisplay = do
+sillyDisplay :: IO ()
+sillyDisplay = do
     clear [ColorBuffer]
     flush
 
 class Graphic a where
-  renderInit :: IO ()
-  sillyDisplay :: IO ()
+  renderInit :: a -> IO ()
   -- draw :: gra -> IO ()
   -- drawPrmitives + textures + strings + clear Colors
   --

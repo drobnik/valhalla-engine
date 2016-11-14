@@ -1,6 +1,8 @@
 module Engine where
-import Render.Utils
-import Render.WindowManager
+
+import Render.Utils as R
+import Render.WindowManager as W
+
 import Graphics.UI.GLUT
 
 -- | Definitions of engine specific classes and datas, f.e.
@@ -19,13 +21,13 @@ data Engine a = Engine
                 --, physics :: Physics
                 --, update :: DeltaTime -> a -> a -- zmiana stanu gry
                 }
-sampleEngine :: Engine
-sampleEngine = Engine {sampleWinManager, initRender}
+sampleEngine :: Engine a
+sampleEngine = Engine {windowManager = W.sampleWinManager, render = R.initRender}
 
-runEngine :: IO ()
+runEngine :: Engine a -> IO ()
 runEngine (Engine win render) = do
-  initW win render
-  displayCallback $= sillyDisplay
+  W.initW win render
+  displayCallback $= R.sillyDisplay
   mainLoop
 -- data InputHandler a
 -- data RenderPipeline -> jezeli bedziemy chcieli zrobic wiecej niz renderowanie tileso
