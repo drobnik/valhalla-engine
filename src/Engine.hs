@@ -1,10 +1,11 @@
 module Engine where
 
 -- TODO specify what to hide in these modules
-import Render.Utils
+import Render.Utils hiding (render) --change render function
 import Render.WindowManager
 import Engine.InputHandler
 import Engine.Datas as D
+import Data.IORef
 
 import Graphics.UI.GLUT
 
@@ -18,9 +19,9 @@ import Graphics.UI.GLUT
 data Engine a = Engine
                 { windowManager :: WindowManager -- bedzie miec opcje inita, nazwa, etc
                 , render :: Renderer
-                , engineS :: D.EngineState -- przechowywanie i obliczanie dt
-              --  , inputHandler :: InputHandler a -- wszelakie wydarzenia z zewnatrz
-                --, loader :: Loader -- opcje ladowania swiata i assetow
+                , engineS :: IORef D.EngineState -- przechowywanie i obliczanie dt
+                --, gameState :: a
+                 --, loader :: Loader -- opcje ladowania swiata i assetow
                 --, physics :: Physics
                 --, update :: DeltaTime -> a -> a -- zmiana stanu gry
                 }
@@ -29,16 +30,16 @@ data Engine a = Engine
 sampleEngine :: Engine a
 sampleEngine = Engine {windowManager = sampleWinManager
                       , render = initRender
-                      , engineS = sampleState}
+                      , engineS = undefined}
 
 -- po callbacku podmieniaj stan silnika!
 runEngine :: Engine a -> IO ()
 runEngine (Engine win render eState) = do
+  enState <- newIORef (sampleState)
   initW win render
-  -- inputCallback
+  inputCallback enState
   displayCallback $= sillyDisplay
   mainLoop
--- data InputHandler a
 -- data RenderPipeline -> jezeli bedziemy chcieli zrobic wiecej niz renderowanie tileso
 -- class Updatable
 -- class Drawable

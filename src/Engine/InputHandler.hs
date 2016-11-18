@@ -8,15 +8,6 @@ import Control.Monad
 
 --data Direction = Left | Right | Up | Down | Jump --TEMP
 
--- gs - gameState, e - engineState
-data InputHandler e gs = InputHandler --mozna zdefiniowac klase, ktora okresla gs
-                         { keyboardMouseIn :: EngineState
-                                           -> Key -> KeyState
-                                           -> Modifiers -> Position -> IO ()
-                         , activeMouseMotion :: EngineState -> Position -> IO ()
-                         , passiveMouseMotion :: EngineState -> Position -> IO ()
-                         }
-
 transformKeys :: Key -> Direction
 transformKeys (Char c) = show c
 transformKeys (Char ' ') = "Jump!"
@@ -25,6 +16,7 @@ transformKeys (SpecialKey KeyRight) = "Right"
 transformKeys (SpecialKey KeyUp)    = "Up"
 transformKeys (SpecialKey KeyDown)  = "Down"
 transformKeys _ = "Random_event"
+-- + patrz czy nie ESC czy cos
 
 -- for silly debuging
 whatIsActive :: ActiveKeys -> (Key -> Direction) -> IO ()
@@ -38,10 +30,9 @@ showMe (x:xs) = do
   showMe xs
 showMe [] = return ()
 
--- for keyboardMouseIn!!
---
+
 keyboardMouse :: IORef EngineState ->  Key -> KeyState
-                -> Modifiers -> Position -> IO () --later: take care of modifires +gamestate
+                -> Modifiers -> Position -> IO () --later: take care of modifires
 keyboardMouse e k kState mod pos =
   case (k, kState) of
     (Char c, Down)        -> keyUpdate (Char c) S.insert
@@ -59,8 +50,6 @@ keyboardMouse e k kState mod pos =
           engine = EngineState{keys = keysUpd, dt = dt'}
       writeIORef e engine
       whatIsActive keysUpd transformKeys
-          -- teraz nadpisac keySet przez keys -> return keys?
-
 
           -- potem w idle patrzymy co sie tutaj stalo i nakladamy to w grze.
           -- patrz engineState -> zmieniaj wedlug tego stan gry i dalej
