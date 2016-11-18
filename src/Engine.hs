@@ -18,20 +18,22 @@ import Graphics.UI.GLUT
 data Engine a = Engine
                 { windowManager :: WindowManager -- bedzie miec opcje inita, nazwa, etc
                 , render :: Renderer
-              --  , engineS :: D.EngineState -- przechowywanie i obliczanie dt
+                , engineS :: D.EngineState -- przechowywanie i obliczanie dt
               --  , inputHandler :: InputHandler a -- wszelakie wydarzenia z zewnatrz
                 --, loader :: Loader -- opcje ladowania swiata i assetow
                 --, physics :: Physics
                 --, update :: DeltaTime -> a -> a -- zmiana stanu gry
                 }
 
-data EngineState = EngineState
 
 sampleEngine :: Engine a
-sampleEngine = Engine {windowManager = sampleWinManager, render = initRender}
+sampleEngine = Engine {windowManager = sampleWinManager
+                      , render = initRender
+                      , engineS = sampleState}
 
+-- po callbacku podmieniaj stan silnika!
 runEngine :: Engine a -> IO ()
-runEngine (Engine win render) = do
+runEngine (Engine win render eState) = do
   initW win render
   -- inputCallback
   displayCallback $= sillyDisplay
