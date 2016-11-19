@@ -1,14 +1,14 @@
 module GameState where
 
 import Data.Set
---import Render.Primitivies
+import Render.Primitives
 
 data GameState = GameState
                { lifes :: Int
                , level :: Int
                -- , world :: World -- world entities with actors inluding renderModels
                -- , map :: Tiles -- tiles to render
---               , renderModels :: Set RenderModel
+               --  , renderModels :: Set RenderModel
                }
 
 initStateG :: GameState

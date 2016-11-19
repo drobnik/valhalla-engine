@@ -3,6 +3,7 @@ module Engine.Datas where
 import Graphics.UI.GLUT
 import Data.IORef
 import Data.Set
+
 -- datas and types used in this engine
 
 type ActiveKeys = Set Key

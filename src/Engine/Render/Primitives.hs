@@ -2,22 +2,15 @@ module Render.Primitives where
 
 import Graphics.UI.GLUT
 
-data Primit = Rect | Circle
+type Dimensions = (Float, Float)
+type CenterPosition = (Float, Float)
 
-data RenderModel = RenderModel
-                 { dimensions :: (Float, Float)
-                 , position :: (Float, Float) --floor it; center
-                 --, texture :: Texture
-                 , primitive :: Primit
-                 , color :: Color4 Float
-                 }
-
--- for now: render with default font
-renderModel :: RenderModel -> IO ()
-renderModel (RenderModel (w, h) (x, y) prim color) =
-  case prim of
-    Rect -> renderRectangle (w, h) (x, y) color
-    Circle -> undefined --TEMP
-
-renderRectangle :: (Float, Float) -> (Float, Float) -> Color4 Float -> IO ()
-renderRectangle (w, h) (x, y) color = undefined
+-- rendering commnads for renderModel | trza do osobnego modulu przenisc jednak
+data RenderCom = RenderRectangle Dimensions CenterPosition
+               | RenderColor (Color4 Float)
+               | RenderRotate Float -- angle
+               | RenderTranslate (Float, Float)
+               | RenderScale Float
+               | RenderText String
+               deriving (Show, Eq, Ord)
+-- + renderWithCamera + alpha + texture
