@@ -16,7 +16,7 @@ cabal-version:       >=1.10
 library
   hs-source-dirs:      src, src/Sample/, src/Engine/
   other-modules:       Engine, Engine.InputHandler, Engine.Datas
-                     , Render.WindowManager, GameState
+                     , Render.WindowManager, GameState, Engine.Consts
                      , Render.Utils, Render.Primitives
                      , Render.Model
   exposed-modules:     GameMain
