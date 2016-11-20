@@ -6,4 +6,5 @@ import GameState
 gameMain :: IO ()
 gameMain = do
   let engine = sampleEngine
-  runEngine engine
+      gameState = initStateG
+  runEngine engine gameState

@@ -9,27 +9,28 @@ import GameState
 
 class Graphic a where
   renderInit :: a -> IO ()
-  render :: a -> IO ()
+--  renderPipeline :: a -> IO ()
 
 data Renderer = Renderer
                 { mMode :: MatrixMode
                 , clearC :: Color4 Float
-                , gameState :: GameState
                 }
 
 instance Graphic Renderer where
-  renderInit (Renderer m c _) = do
+  renderInit (Renderer m c) = do
     clearColor $= c
     matrixMode $= m
     loadIdentity
     ortho 0 1 0 1 (-1) 1
 
-  render (Renderer _ _ gs) {--} = do --argument z modelami TEMP
+
+renderPipeline :: GameState -> IO ()
+renderPipeline gs = do
     clear [ColorBuffer]
-    -- renderPipeline
+    renderModels $ listOfModels gs
     flush
 
--- renderPipeline
+-- renderPipeline = renderModels + renderMap + renderUI
 
 renderModels :: [RenderModel] -> IO ()
 renderModels (x:xs) = do
@@ -37,7 +38,7 @@ renderModels (x:xs) = do
   renderModels xs
 renderModels [] = return ()
 
--- jak robie rekurencje w IO z interpretcoms, to wywala sie linker!
+
 interpretComs :: [RenderCom] -> IO ()
 interpretComs (x:xs) = do
   interpretCommand x
@@ -50,7 +51,6 @@ interpretCommand x = case x of
       rect (Vertex2 x1 y1) (Vertex2 (x1+w) (y1+h))
     RenderColor colorF ->
       color colorF
-
     RenderRotate angle -> undefined
     RenderTranslate (x, y) -> undefined
     RenderScale factor -> undefined
@@ -60,7 +60,6 @@ interpretCommand x = case x of
 initRender :: Renderer
 initRender = Renderer { mMode = Projection
                       , clearC = Color4 0 0 0 0
-                      , gameState = undefined
                       }
 
 sillyDisplay :: IO ()

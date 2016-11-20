@@ -4,10 +4,14 @@ import Graphics.UI.GLUT
 import Data.IORef
 import Data.Set
 
+import Render.Model
 -- datas and types used in this engine
 
 type ActiveKeys = Set Key
 type Direction = String
+
+class GState a where
+  listOfModels :: a -> [RenderModel]
 
 data EngineState = EngineState
                  { keys :: ActiveKeys

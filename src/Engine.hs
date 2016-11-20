@@ -1,11 +1,12 @@
 module Engine where
 
 -- TODO specify what to hide in these modules
-import Render.Utils hiding (render) --change render function
+import Render.Utils
 import Render.WindowManager
 import Engine.InputHandler
 import Engine.Datas as D
 import Data.IORef
+import GameState --TEMP
 
 import Graphics.UI.GLUT
 
@@ -16,29 +17,30 @@ import Graphics.UI.GLUT
 
 -- http://hastebin.com/ezidakuhoq.hs == UPDATE!
 
-data Engine a = Engine
+-- moze zaleznosc engine do tefo?
+data Engine = Engine
                 { windowManager :: WindowManager -- bedzie miec opcje inita, nazwa, etc
-                , render :: Renderer
+                , renderEngine :: Renderer
                 , engineS :: IORef D.EngineState -- przechowywanie i obliczanie dt
-                --, gameState :: a
                  --, loader :: Loader -- opcje ladowania swiata i assetow
                 --, physics :: Physics
                 --, update :: DeltaTime -> a -> a -- zmiana stanu gry
                 }
 
 
-sampleEngine :: Engine a
+sampleEngine :: Engine
 sampleEngine = Engine {windowManager = sampleWinManager
-                      , render = initRender
-                      , engineS = undefined}
+                      , renderEngine = initRender
+                      , engineS = undefined
+                      }
 
 -- po callbacku podmieniaj stan silnika!
-runEngine :: Engine a -> IO ()
-runEngine (Engine win render eState) = do
-  enState <- newIORef (sampleState)
-  initW win render
+runEngine :: Engine -> GameState -> IO () --(GState a) => Engine -> a -> IO ()
+runEngine (Engine win ren eState) gameS = do
+  enState <- newIORef (sampleState) --na razie enginestate jest useless
+  initW win ren
   inputCallback enState
-  displayCallback $= sillyDisplay
+  displayCallback $= renderPipeline gameS
   mainLoop
 -- data RenderPipeline -> jezeli bedziemy chcieli zrobic wiecej niz renderowanie tileso
 -- class Updatable
