@@ -1,6 +1,7 @@
 module Render.WindowManager where
 
 import Render.Utils
+import Engine.Consts
 import Graphics.UI.GLUT
 import Data.Int
 
@@ -41,5 +42,5 @@ initWinManager title' size pos = -- TODO \(mode, status) ->
                 }
 
 sampleWinManager :: WindowManager
-sampleWinManager = initWinManager "Testing.." (Size 600 800)
-                   (Position 100 100)
+sampleWinManager = initWinManager "Testing.." (Size winHeight winWidth)
+                   (Position posit posit)

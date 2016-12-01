@@ -9,13 +9,15 @@ import Control.Monad
 --data Direction = Left | Right | Up | Down | Jump --TEMP
 
 transformKeys :: Key -> Direction
-transformKeys (Char c) = show c
 transformKeys (Char ' ') = "Jump!"
 transformKeys (SpecialKey KeyLeft)  = "Left"
 transformKeys (SpecialKey KeyRight) = "Right"
 transformKeys (SpecialKey KeyUp)    = "Up"
 transformKeys (SpecialKey KeyDown)  = "Down"
-transformKeys _ = "Random_event"
+transformKeys (Char '\ESC') = "Death"
+transformKeys (Char c) = show c
+transformKeys (SpecialKey c) = show c
+
 -- + patrz czy nie ESC czy cos
 
 -- for silly debuging
@@ -41,7 +43,7 @@ keyboardMouse e k kState mod pos =
     (SpecialKey c, Up)    -> keyUpdate (SpecialKey c) S.delete
     (MouseButton c, Up)   -> keyUpdate (MouseButton c) S.delete
     (MouseButton c, Down) -> keyUpdate (MouseButton c) S.insert
-    _ -> return ()
+    _ -> return () --overlapped
 
   where
     keyUpdate key f = do

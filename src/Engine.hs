@@ -41,6 +41,7 @@ runEngine (Engine win ren eState) gameS = do
   initW win ren
   inputCallback enState
   displayCallback $= renderPipeline gameS
+--  reshapeCallback $= Just reshape
   mainLoop
 -- data RenderPipeline -> jezeli bedziemy chcieli zrobic wiecej niz renderowanie tileso
 -- class Updatable

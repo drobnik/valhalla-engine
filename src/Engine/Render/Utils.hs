@@ -3,6 +3,7 @@ module Render.Utils where
 import Graphics.UI.GLUT
 import Engine.Datas
 import Render.Primitives
+import Engine.Consts
 import Render.Model
 import GameState
 
@@ -10,7 +11,7 @@ import GameState
 class Graphic a where
   renderInit :: a -> IO ()
 --  renderPipeline :: a -> IO ()
-
+-- viewport -> camera!
 data Renderer = Renderer
                 { mMode :: MatrixMode
                 , clearC :: Color4 Float
@@ -19,9 +20,11 @@ data Renderer = Renderer
 instance Graphic Renderer where
   renderInit (Renderer m c) = do
     clearColor $= c
+    -- make viewport centered TMP
+--    viewport $= (0 0winWidth winHeight))
     matrixMode $= m
     loadIdentity
-    ortho 0 1 0 1 (-1) 1
+    ortho 0 (realToFrac winWidth) (realToFrac winHeight) 0 (-1) 1
 
 
 renderPipeline :: GameState -> IO ()
@@ -56,6 +59,12 @@ interpretCommand x = case x of
     RenderScale factor -> undefined
     RenderText text -> undefined
 
+{-reshape :: ReshapeCallback
+reshape siz = do
+  let pX' = (winWidth / 2)
+  viewport $= (Position 0 0, siz)
+  postRedisplay Nothing
+-}
  ------------------
 initRender :: Renderer
 initRender = Renderer { mMode = Projection
