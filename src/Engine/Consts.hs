@@ -5,11 +5,16 @@ import Data.Int
 
 -- plenty of useful, engine specific constants
 
-winHeight :: Int32
-winHeight = 400
+viewHeight :: Int32
+viewHeight = 400
 
-winWidth :: Int32
-winWidth = 600
+
+--viewHeight = 400
+
+--viewWidth =
+
+viewWidth :: Int32
+viewWidth = 600
 
 posit :: Int32
 posit = 100

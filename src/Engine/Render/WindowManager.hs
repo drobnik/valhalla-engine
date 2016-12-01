@@ -42,5 +42,5 @@ initWinManager title' size pos = -- TODO \(mode, status) ->
                 }
 
 sampleWinManager :: WindowManager
-sampleWinManager = initWinManager "Testing.." (Size winHeight winWidth)
+sampleWinManager = initWinManager "Testing.." (Size viewWidth viewHeight)
                    (Position posit posit)

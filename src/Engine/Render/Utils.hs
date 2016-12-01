@@ -20,11 +20,10 @@ data Renderer = Renderer
 instance Graphic Renderer where
   renderInit (Renderer m c) = do
     clearColor $= c
-    -- make viewport centered TMP
---    viewport $= (0 0winWidth winHeight))
+--    viewport (Position 10 30) (Size winHeight winWidth)
     matrixMode $= m
     loadIdentity
-    ortho 0 (realToFrac winWidth) (realToFrac winHeight) 0 (-1) 1
+    ortho 0 (realToFrac viewWidth) (realToFrac viewHeight) 0 (-1) 1
 
 
 renderPipeline :: GameState -> IO ()
@@ -51,7 +50,7 @@ interpretComs [] = return ()
 interpretCommand :: RenderCom -> IO ()
 interpretCommand x = case x of
     RenderRectangle (w, h) (x1, y1) ->
-      rect (Vertex2 x1 y1) (Vertex2 (x1+w) (y1+h))
+      rect (Vertex2 x1 y1) (Vertex2 (w + x1) (h + y1))
     RenderColor colorF ->
       color colorF
     RenderRotate angle -> undefined
@@ -59,12 +58,12 @@ interpretCommand x = case x of
     RenderScale factor -> undefined
     RenderText text -> undefined
 
-{-reshape :: ReshapeCallback
+-- later - add a position of player for viewport
+reshape :: ReshapeCallback
 reshape siz = do
-  let pX' = (winWidth / 2)
-  viewport $= (Position 0 0, siz)
+  viewport $= ((Position 0 0), (Size viewWidth viewHeight))
   postRedisplay Nothing
--}
+
  ------------------
 initRender :: Renderer
 initRender = Renderer { mMode = Projection
