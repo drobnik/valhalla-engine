@@ -8,11 +8,6 @@ import Data.Int
 viewHeight :: Int32
 viewHeight = 400
 
-
---viewHeight = 400
-
---viewWidth =
-
 viewWidth :: Int32
 viewWidth = 600
 
@@ -32,16 +27,16 @@ msTargetElapsedTime = targetElapsedTime * 1000
 
 --TEMP
 tileDim :: (Float, Float)
-tileDim = (50.0, 50.0)--(0.05, 0.05)
+tileDim = (50.0, 50.0)
 
 pos1 :: (Float, Float)
-pos1 = (10.0, 10.0)--(0.20, 0.10)
+pos1 = (10.0, 10.0)
 
 pos2 :: (Float, Float)
-pos2 = (30.0, 10.0)--(0.10, 0.40)
+pos2 = (30.0, 340.0)
 
 pos3 :: (Float, Float)
-pos3 = (4.0, 20.0)--(0.0, 0.0)
+pos3 = (100.0, 80.0)
 
 -- move to render!
 col1 :: Color4 Float

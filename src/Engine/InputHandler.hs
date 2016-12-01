@@ -48,7 +48,7 @@ keyboardMouse e k kState mod pos =
   where
     keyUpdate key f = do
       (EngineState keys' dt') <- readIORef e
-      let keysUpd = f key keys'
+      let keysUpd = f key keys' --klawisze tlumaczone dopiero w estate
           engine = EngineState{keys = keysUpd, dt = dt'}
       writeIORef e engine
       whatIsActive keysUpd transformKeys

@@ -3,8 +3,9 @@ module Render.Model where
 import Render.Primitives
 import Engine.Consts
 import Graphics.UI.GLUT
-import Data.Set
+import Data.Map
 
+-- wywalic rozowy z sampla
 data RenderModel = RenderModel
                  { dim :: Dimensions
                  , pos :: CenterPosition --floor
@@ -17,8 +18,8 @@ data RenderModel = RenderModel
 draw :: RenderModel -> [RenderCom]
 draw (RenderModel _ _  _ render) = render
 
-sampleSet :: Set RenderModel
-sampleSet = insert x $ insert y $ insert z $ sete
+sampleSet :: Map Int RenderModel
+sampleSet = insert 1 x $ insert 2 y $ insert 3 z $ sete
   where x = RenderModel
             { dim = tileDim
             , pos = pos1
@@ -35,8 +36,7 @@ sampleSet = insert x $ insert y $ insert z $ sete
             { dim = tileDim
             , pos = pos3
             , modelColor = col3
-            , renderInstr = sampleInstr tileDim pos3 col3 --jak sie odwolac do modelColor,
-            -- to jest RenderModel -> Color4
+            , renderInstr = sampleInstr tileDim pos3 col3
             }
         sete = empty
 

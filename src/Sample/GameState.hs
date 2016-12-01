@@ -1,6 +1,10 @@
+{-# LANGUAGE RankNTypes #-}
+
 module GameState where
 
-import Data.Set
+import Data.STRef
+import Control.Monad.ST
+import Data.Map as Map
 import Render.Model
 import Engine.Datas
 
@@ -9,12 +13,22 @@ data GameState = GameState
                , level :: Int
                -- , world :: World -- world entities with actors inluding renderModels
                -- , map :: Tiles -- tiles to render
-               , modelsSet :: Set RenderModel -- wyciagniety ze swiata
-               -- musi ogarniac sam, co jest widoczne i dawac do zbioru
+               , modelsSet :: forall s. ST s (Map Int RenderModel)
                }
 
-instance GState GameState where
-  listOfModels (GameState _ _ models) = toList models
+emptyModels :: ST s (Map Int RenderModel)
+emptyModels = do
+  renderMap <- newSTRef Map.empty
+  readSTRef renderMap
+
+getModels :: (forall s. ST s (Map Int RenderModel)) -> Map Int RenderModel
+getModels models = runST models
 
 initStateG :: GameState
-initStateG = GameState {lifes = 1, level = 1, modelsSet = sampleSet}
+initStateG = GameState {lifes = 1, level = 1, modelsSet = initModels}
+-----
+
+initModels :: ST s (Map Int RenderModel)
+initModels = do
+  renderMap <- newSTRef sampleSet
+  readSTRef renderMap

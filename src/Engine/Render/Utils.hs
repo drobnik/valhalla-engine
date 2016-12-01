@@ -1,5 +1,6 @@
 module Render.Utils where
 
+import Control.Monad.ST
 import Graphics.UI.GLUT
 import Engine.Datas
 import Render.Primitives
@@ -20,26 +21,28 @@ data Renderer = Renderer
 instance Graphic Renderer where
   renderInit (Renderer m c) = do
     clearColor $= c
---    viewport (Position 10 30) (Size winHeight winWidth)
     matrixMode $= m
     loadIdentity
     ortho 0 (realToFrac viewWidth) (realToFrac viewHeight) 0 (-1) 1
 
 
 renderPipeline :: GameState -> IO ()
-renderPipeline gs = do
+renderPipeline (GameState _ _ models) = do
     clear [ColorBuffer]
-    renderModels $ listOfModels gs
+    mapM_ renderModel (getModels models)
     flush
 
 -- renderPipeline = renderModels + renderMap + renderUI
 
-renderModels :: [RenderModel] -> IO ()
+{-renderModels :: [RenderModel] -> IO ()
 renderModels (x:xs) = do
   interpretComs $ draw x
   renderModels xs
 renderModels [] = return ()
+-}
 
+renderModel :: RenderModel -> IO ()
+renderModel x = interpretComs $ draw x
 
 interpretComs :: [RenderCom] -> IO ()
 interpretComs (x:xs) = do
@@ -64,13 +67,8 @@ reshape siz = do
   viewport $= ((Position 0 0), (Size viewWidth viewHeight))
   postRedisplay Nothing
 
- ------------------
+
 initRender :: Renderer
 initRender = Renderer { mMode = Projection
                       , clearC = Color4 0 0 0 0
                       }
-
-sillyDisplay :: IO ()
-sillyDisplay = do
-    clear [ColorBuffer]
-    flush
