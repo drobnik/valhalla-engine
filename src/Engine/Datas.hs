@@ -3,14 +3,11 @@ module Engine.Datas where
 import Graphics.UI.GLUT
 import Data.IORef
 import Data.Set
-
 import Render.Model
 -- datas and types used in this engine
 
 type ActiveKeys = Set Key
-
-class GState a where
-  listOfModels :: a -> [RenderModel]
+type PixOff = (Float, Float) -- x ; y
 
 data EngineState = EngineState
                  { keys :: ActiveKeys

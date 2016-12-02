@@ -10,7 +10,7 @@ import Render.Model
 import Engine.Datas
 
 data GameState = GameState
-               { lifes :: Int
+               { lives :: Int
                , level :: Int
                -- , world :: World -- world entities with actors inluding renderModels
                -- , map :: Tiles -- tiles to render WTF to tutaj?
@@ -26,11 +26,28 @@ emptyModels = do
   renderMap <- newSTRef Map.empty
   readSTRef renderMap
 
+
+getModelKey :: Int -> Map Int RenderModel-> RenderModel
+getModelKey n modMap = case Map.lookup n modMap of
+  Just m -> m
+  Nothing -> dummyModel
+
 getModels :: (forall s. ST s (Map Int RenderModel)) -> Map Int RenderModel
 getModels models = runST models
 
+modifyModelsSet :: Map Int RenderModel -> RenderModel
+                -> Int -> GameState
+                -> GameState
+modifyModelsSet modMap rm n (GameState liv lvl models) = undefined {-GameState
+                                                         { lives = liv
+                                                         , level = lvl
+                                                         , modelsSet = sick models
+                                                         }
+  where sick mods = runST $ writeSTRef mods modMap'
+        modMap' = Map.insert n rm modMap-}
+
 initStateG :: GameState
-initStateG = GameState {lifes = 1, level = 1, modelsSet = initModels}
+initStateG = GameState {lives = 1, level = 1, modelsSet = initModels}
 
 initModels :: ST s (Map Int RenderModel)
 initModels = do

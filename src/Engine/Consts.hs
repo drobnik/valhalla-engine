@@ -38,6 +38,9 @@ pos2 = (30.0, 340.0)
 pos3 :: (Float, Float)
 pos3 = (100.0, 80.0)
 
+--TEMP! for square movement
+un :: Float
+un = 10
 -- move to render!
 col1 :: Color4 Float
 col1 = Color4 1.0 1.0 1.0 1.0 --bial

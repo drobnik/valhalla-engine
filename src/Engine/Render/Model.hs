@@ -18,6 +18,9 @@ data RenderModel = RenderModel
 draw :: RenderModel -> [RenderCom]
 draw (RenderModel _ _  _ render) = render
 
+renPos :: RenderModel -> CenterPosition
+renPos (RenderModel _ pos _ _) = pos
+
 modifyModelPos :: RenderModel -> CenterPosition -> RenderModel
 modifyModelPos (RenderModel d po col rend) pos' = RenderModel
                                                    { dim = d
@@ -50,3 +53,11 @@ sampleSet = insert 1 x $ insert 2 y $ insert 3 z $ sete
 
 sampleInstr :: Dimensions -> CenterPosition -> Color4 Float -> [RenderCom]
 sampleInstr dim pos color = [RenderColor color, (RenderRectangle dim pos)]
+
+dummyModel :: RenderModel
+dummyModel = RenderModel
+            { dim = tileDim
+            , pos = pos3
+            , modelColor = Color4 0.2 0.2 0.2 1.0
+            , renderInstr = sampleInstr tileDim pos3 col3
+            }

@@ -5,6 +5,9 @@ import Render.Utils
 import Render.WindowManager
 import Engine.InputHandler
 import Engine.Datas as D
+import Render.Model --TEMP
+import GameState --TEMP
+import GameData
 import Data.IORef
 import GameState (GameState)
 
@@ -36,7 +39,13 @@ sampleEngine es = Engine {windowManager = sampleWinManager
 gameUpdate :: IORef EngineState -> IORef GameState -> IO ()
 gameUpdate es gs = do
   engineState <- readIORef es
-  gameState <- readIORef es
+  gameState <- readIORef gs
+  let keys = getKeys engineState
+      models = getModelsSet gameState
+      model = getModelKey 3 models --roz
+      pos = modelPosition keys (renPos model) --fakap
+      --model' = modifyModelPos model pos
+      -- modyfikuj mape i nadpisz ja
   return ()
 
 -- po callbacku podmieniaj stan silnika!
