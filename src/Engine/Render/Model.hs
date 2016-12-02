@@ -8,7 +8,7 @@ import Data.Map
 -- wywalic rozowy z sampla
 data RenderModel = RenderModel
                  { dim :: Dimensions
-                 , pos :: CenterPosition --floor
+                 , pos :: CenterPosition --lewy-gorny POPRAWIC
                  --, texture :: Texture
                  , modelColor :: Color4 Float
                  , renderInstr :: [RenderCom]
@@ -17,6 +17,14 @@ data RenderModel = RenderModel
 -- for now: render with default font
 draw :: RenderModel -> [RenderCom]
 draw (RenderModel _ _  _ render) = render
+
+modifyModelPos :: RenderModel -> CenterPosition -> RenderModel
+modifyModelPos (RenderModel d po col rend) pos' = RenderModel
+                                                   { dim = d
+                                                   , pos = po
+                                                   , modelColor = col
+                                                   , renderInstr = modifyPos rend [] pos'
+                                                   }
 
 sampleSet :: Map Int RenderModel
 sampleSet = insert 1 x $ insert 2 y $ insert 3 z $ sete

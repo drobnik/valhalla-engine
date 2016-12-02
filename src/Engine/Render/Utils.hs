@@ -27,19 +27,12 @@ instance Graphic Renderer where
 
 
 renderPipeline :: GameState -> IO ()
-renderPipeline (GameState _ _ models) = do
+renderPipeline (GameState _ _ models)  = do
     clear [ColorBuffer]
     mapM_ renderModel (getModels models)
     flush
 
--- renderPipeline = renderModels + renderMap + renderUI
-
-{-renderModels :: [RenderModel] -> IO ()
-renderModels (x:xs) = do
-  interpretComs $ draw x
-  renderModels xs
-renderModels [] = return ()
--}
+-- renderPipeline = (2)renderModels + (1)renderMap + (3)renderUI
 
 renderModel :: RenderModel -> IO ()
 renderModel x = interpretComs $ draw x

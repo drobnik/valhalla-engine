@@ -14,3 +14,9 @@ data RenderCom = RenderRectangle Dimensions CenterPosition
                | RenderText String
                deriving (Show, Eq, Ord)
 -- + renderWithCamera + alpha + texture
+
+modifyPos :: [RenderCom] -> [RenderCom] -> CenterPosition -> [RenderCom]
+modifyPos (x:xs) renAcc pos' = case x of
+  RenderRectangle dim pos -> renAcc ++ [(RenderRectangle dim pos')] ++ xs
+  _                       -> modifyPos xs (x:renAcc) pos'
+modifyPos [] renAcc pos' = renAcc

@@ -6,32 +6,6 @@ import Data.IORef
 import Engine.Datas
 import Control.Monad
 
---data Direction = Left | Right | Up | Down | Jump --TEMP
-
-transformKeys :: Key -> Direction
-transformKeys (Char ' ') = "Jump!"
-transformKeys (SpecialKey KeyLeft)  = "Left"
-transformKeys (SpecialKey KeyRight) = "Right"
-transformKeys (SpecialKey KeyUp)    = "Up"
-transformKeys (SpecialKey KeyDown)  = "Down"
-transformKeys (Char '\ESC') = "Death"
-transformKeys (Char c) = show c
-transformKeys (SpecialKey c) = show c
-
--- + patrz czy nie ESC czy cos
-
--- for silly debuging
-whatIsActive :: ActiveKeys -> (Key -> Direction) -> IO ()
-whatIsActive keys f = do
-  let iterated = S.elems $ S.map f keys
-  showMe iterated
-
-showMe :: [String] -> IO ()
-showMe (x:xs) = do
-  putStrLn x
-  showMe xs
-showMe [] = return ()
-
 
 keyboardMouse :: IORef EngineState ->  Key -> KeyState
                 -> Modifiers -> Position -> IO () --later: take care of modifires
@@ -51,12 +25,9 @@ keyboardMouse e k kState mod pos =
       let keysUpd = f key keys' --klawisze tlumaczone dopiero w estate
           engine = EngineState{keys = keysUpd, dt = dt'}
       writeIORef e engine
-      whatIsActive keysUpd transformKeys
-
-          -- potem w idle patrzymy co sie tutaj stalo i nakladamy to w grze.
+              -- potem w idle patrzymy co sie tutaj stalo i nakladamy to w grze.
           -- patrz engineState -> zmieniaj wedlug tego stan gry i dalej
 
--- w idleCallbacku nalozyc to co sie stalo tutaj
 inputCallback :: IORef EngineState -> IO ()
 inputCallback e = do
   keyboardMouseCallback $= (Just (keyboardMouse e))

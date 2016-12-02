@@ -8,7 +8,6 @@ import Render.Model
 -- datas and types used in this engine
 
 type ActiveKeys = Set Key
-type Direction = String
 
 class GState a where
   listOfModels :: a -> [RenderModel]
@@ -17,6 +16,9 @@ data EngineState = EngineState
                  { keys :: ActiveKeys
                  , dt :: Double -- last delta time
                  }
+
+getKeys :: EngineState -> ActiveKeys
+getKeys (EngineState keys _) = keys
 
 sampleState :: EngineState
 sampleState = EngineState

@@ -18,7 +18,7 @@ library
   other-modules:       Engine, Engine.InputHandler, Engine.Datas
                      , Render.WindowManager, GameState, Engine.Consts
                      , Render.Utils, Render.Primitives
-                     , Render.Model
+                     , Render.Model, GameData
   exposed-modules:     GameMain
 
   build-depends:       base >= 4.7 && < 5
