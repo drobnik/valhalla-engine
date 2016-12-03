@@ -1,6 +1,6 @@
 module Engine.InputHandler where
 
-import Graphics.UI.GLUT
+import qualified SDL
 import Data.Set as S
 import Data.IORef
 import Engine.Datas

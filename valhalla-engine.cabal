@@ -22,7 +22,7 @@ library
   exposed-modules:     GameMain
 
   build-depends:       base >= 4.7 && < 5
-                     , OpenGL, GLUT, time, containers
+                     , OpenGL, sdl2, time, containers
                      , transformers
   default-language:    Haskell2010
 

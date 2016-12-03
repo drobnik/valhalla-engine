@@ -1,7 +1,7 @@
 module Render.Utils where
 
 import Control.Monad.ST
-import Graphics.UI.GLUT
+import qualified SDL
 import Engine.Datas
 import Render.Primitives
 import Engine.Consts

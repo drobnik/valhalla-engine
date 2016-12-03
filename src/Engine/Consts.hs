@@ -1,6 +1,6 @@
 module Engine.Consts where
 
-import Graphics.UI.GLUT
+import Graphics.Rendering.OpenGL
 import Data.Int
 
 -- plenty of useful, engine specific constants

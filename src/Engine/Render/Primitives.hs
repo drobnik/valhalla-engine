@@ -1,6 +1,6 @@
 module Render.Primitives where
 
-import Graphics.UI.GLUT
+import Graphics.Rendering.OpenGL
 
 type Dimensions = (Float, Float)
 type CenterPosition = (Float, Float)

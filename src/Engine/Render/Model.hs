@@ -2,7 +2,7 @@ module Render.Model where
 
 import Render.Primitives
 import Engine.Consts
-import Graphics.UI.GLUT
+import Graphics.Rendering.OpenGL
 import Data.Map
 
 -- wywalic rozowy z sampla

@@ -1,6 +1,6 @@
 module Engine.Datas where
 
-import Graphics.UI.GLUT
+import qualified SDL
 import Data.IORef
 import Data.Set
 import Render.Model

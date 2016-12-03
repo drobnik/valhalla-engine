@@ -5,7 +5,7 @@ module GameState where
 import Data.STRef
 import Control.Monad.ST
 import Data.Map as Map
-import Graphics.UI.GLUT
+import Graphics.Rendering.OpenGL
 import Render.Model
 import Engine.Datas
 

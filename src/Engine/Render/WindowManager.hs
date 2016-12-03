@@ -2,7 +2,7 @@ module Render.WindowManager where
 
 import Render.Utils
 import Engine.Consts
-import Graphics.UI.GLUT
+import qualified SDL
 import Data.Int
 
 -- dodac potem reportowanie z gluta -> reportErrors

@@ -1,6 +1,6 @@
 module GameData where
 
-import Graphics.UI.GLUT
+import qualified SDL
 import Engine.Datas
 import Engine.Consts
 import Render.Primitives

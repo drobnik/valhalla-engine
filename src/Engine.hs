@@ -10,8 +10,7 @@ import GameState --TEMP
 import GameData
 import Data.IORef
 import GameState (GameState)
-
-import Graphics.UI.GLUT
+import Graphics.Rendering.OpenGL
 
 -- | Definitions of engine specific classes and datas, f.e.
 -- | GameEngine, GameState and Renderer
