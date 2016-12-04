@@ -11,18 +11,16 @@ import Data.Set as Set
 data Direction = LeftDir | RightDir | UpDir | DownDir | Unknown | End
   deriving (Show, Eq, Ord)
 
-transformSet :: ActiveKeys -> (Key -> Direction) -> [Direction]
+transformSet :: ActiveKeys -> (SDL.Keycode -> Direction) -> [Direction]
 transformSet keys f = Set.elems $ Set.map f keys
 
-transformKeys :: Key -> Direction
-transformKeys (Char ' ') = UpDir
-transformKeys (SpecialKey KeyLeft)  = LeftDir
-transformKeys (SpecialKey KeyRight) = RightDir
-transformKeys (SpecialKey KeyUp)    = UpDir
-transformKeys (SpecialKey KeyDown)  = DownDir
-transformKeys (Char '\ESC') = End
-transformKeys (Char _ ) = Unknown
-transformKeys (SpecialKey _) = Unknown
+transformKeys :: SDL.Keycode -> Direction
+transformKeys (SDL.KeycodeUp) = UpDir
+transformKeys (SDL.KeycodeLeft)  = LeftDir
+transformKeys (SDL.KeycodeRight) = RightDir
+transformKeys (SDL.KeycodeDown)  = DownDir
+transformKeys (SDL.KeycodeEscape) = End
+transformKeys _ = Unknown
 
 transDirection :: PixOff -> [Direction] -> PixOff
 transDirection (x',y') (x:xs) = case x of

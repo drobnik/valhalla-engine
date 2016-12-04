@@ -1,35 +1,37 @@
 module Engine.InputHandler where
 
 import qualified SDL
+import Prelude as P
 import Data.Set as S
 import Data.IORef
 import Engine.Datas
 import Control.Monad
 
-
-keyboardMouse :: IORef EngineState ->  Key -> KeyState
-                -> Modifiers -> Position -> IO () --later: take care of modifires
-keyboardMouse e k kState mod pos =
-  case (k, kState) of
-    (Char c, Down)        -> keyUpdate (Char c) S.insert
-    (Char c, Up)          -> keyUpdate (Char c) S.delete
-    (SpecialKey c, Down)  -> keyUpdate (SpecialKey c) S.insert
-    (SpecialKey c, Up)    -> keyUpdate (SpecialKey c) S.delete
-    (MouseButton c, Up)   -> keyUpdate (MouseButton c) S.delete
-    (MouseButton c, Down) -> keyUpdate (MouseButton c) S.insert
-    _ -> return () --overlapped
-
-  where
-    keyUpdate key f = do
-      (EngineState keys' dt') <- readIORef e
-      let keysUpd = f key keys' --klawisze tlumaczone dopiero w estate
-          engine = EngineState{keys = keysUpd, dt = dt'}
-      writeIORef e engine
-              -- potem w idle patrzymy co sie tutaj stalo i nakladamy to w grze.
-          -- patrz engineState -> zmieniaj wedlug tego stan gry i dalej
-
 inputCallback :: IORef EngineState -> IO ()
 inputCallback e = do
-  keyboardMouseCallback $= (Just (keyboardMouse e))
-  -- motionCallback $=
-  -- passiveMotionCallback $=
+  events <- P.map SDL.eventPayload <$> SDL.pollEvents
+  handleEvents e events
+
+handleEvents :: IORef EngineState -> [SDL.EventPayload] -> IO ()
+handleEvents es events = foldMap (\ev -> inputUpdate es ev) events
+  where
+    inputUpdate :: IORef EngineState -> SDL.EventPayload -> IO ()
+    inputUpdate estate e = case e of
+      SDL.KeyboardEvent es -> keyboardEvents es estate
+      SDL.MouseMotionEvent es -> return ()
+      SDL.MouseButtonEvent es -> return () --temp
+
+
+keyboardEvents :: SDL.KeyboardEventData -> IORef EngineState -> IO ()
+keyboardEvents e estate
+  | SDL.keyboardEventKeyMotion e == SDL.Pressed  = keyUpdate (getKey e) S.insert
+  | SDL.keyboardEventKeyMotion e == SDL.Released = keyUpdate (getKey e) S.delete
+  | SDL.keyboardEventRepeat e = return () --do not update
+  | otherwise = return ()
+  where
+    getKey e = SDL.keysymKeycode (SDL.keyboardEventKeysym e)
+    keyUpdate key f = do
+      (EngineState keys' dt') <- readIORef estate
+      let keysUpd = f key keys'
+          engine = EngineState{keys = keysUpd, dt = dt'}
+      writeIORef estate engine

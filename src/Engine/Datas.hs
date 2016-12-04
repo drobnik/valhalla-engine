@@ -6,7 +6,7 @@ import Data.Set
 import Render.Model
 -- datas and types used in this engine
 
-type ActiveKeys = Set Key
+type ActiveKeys = Set SDL.Keycode
 type PixOff = (Float, Float) -- x ; y
 
 data EngineState = EngineState
@@ -19,6 +19,6 @@ getKeys (EngineState keys _) = keys
 
 sampleState :: EngineState
 sampleState = EngineState
-              { keys = empty :: Set Key
+              { keys = empty :: Set SDL.Keycode
               , dt = 0.0
               }
