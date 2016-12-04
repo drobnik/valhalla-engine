@@ -1,7 +1,6 @@
 module Engine.InputHandler where
 
 import qualified SDL
-import Prelude
 import qualified Data.Set as S
 import Data.IORef
 import Engine.Datas
@@ -9,7 +8,7 @@ import Control.Monad
 
 inputCallback :: IORef EngineState -> IO ()
 inputCallback e = do
-  events <- P.map SDL.eventPayload <$> SDL.pollEvents
+  events <- map SDL.eventPayload <$> SDL.pollEvents
   handleEvents e events
 
 handleEvents :: IORef EngineState -> [SDL.EventPayload] -> IO ()

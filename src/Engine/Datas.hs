@@ -4,10 +4,11 @@ import qualified SDL
 import Data.IORef
 import Data.Set
 import Render.Model
+import Foreign.C.Types
 -- datas and types used in this engine
 
 type ActiveKeys = Set SDL.Keycode
-type PixOff = (Float, Float) -- x ; y
+type PixOff = (CInt, CInt) -- x ; y
 
 data EngineState = EngineState
                  { keys :: ActiveKeys

@@ -1,9 +1,9 @@
 module Render.Utils where
 
 import Control.Monad.ST
-import SDL (($=))
 import qualified SDL
---import SDL.Vect
+import SDL.Vect
+import SDL (($=))
 import Engine.Datas
 import Render.Primitives
 import Engine.Consts
@@ -15,12 +15,14 @@ data ValRender = ValRender
                 { renderer :: IO SDL.Renderer
                 }
 
-renderInit :: SDL.Window -> SDL.Renderer
-renderInit win = do
+initSDL :: IO ()
+initSDL = do
     SDL.initialize [SDL.InitVideo]
     SDL.HintRenderScaleQuality $= SDL.ScaleLinear
 
-    renderer <- SDL.createRenderer window (-1) SDL.defaultRendererConfig
+renderInit :: SDL.Window -> IO SDL.Renderer
+renderInit win = do
+    renderer <- SDL.createRenderer win (-1) SDL.defaultRenderer
     SDL.rendererDrawColor renderer $= V4 0 0 0 0
     return renderer
 
@@ -29,17 +31,17 @@ renderPipeline ren (GameState _ _ models)  = do
     SDL.clear ren
     -- SDL.copy ren texture Nothing Nothing
     mapM_ (renderModel ren) (getModels models)
-    SDL.present renderer
+    SDL.present ren
 
 renderModel :: SDL.Renderer -> RenderModel -> IO ()
-renderModel render x@(RenderModel) = do
+renderModel render x = do
   interpretComs render $ draw x
 
 interpretComs :: SDL.Renderer -> [RenderCom] -> IO ()
 interpretComs ren (x:xs) = do
   interpretCommand ren x
   interpretComs ren xs
-interpretComs [] = return ()
+interpretComs ren [] = return ()
 
 interpretCommand :: SDL.Renderer -> RenderCom -> IO ()
 interpretCommand ren x = case x of

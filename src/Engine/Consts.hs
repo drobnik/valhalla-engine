@@ -2,16 +2,19 @@ module Engine.Consts where
 
 import Graphics.Rendering.OpenGL
 import Data.Int
+import Data.Word
+import SDL.Vect
+import Foreign.C.Types
 
 -- plenty of useful, engine specific constants
 
-viewHeight :: Int32
+viewHeight ::CInt
 viewHeight = 400
 
-viewWidth :: Int32
+viewWidth :: CInt
 viewWidth = 600
 
-posit :: Int32
+posit :: CInt
 posit = 100
 
 startTime :: Double
@@ -26,27 +29,27 @@ msTargetElapsedTime :: Double
 msTargetElapsedTime = targetElapsedTime * 1000
 
 --TEMP
-tileDim :: (Float, Float)
-tileDim = (50.0, 50.0)
+tileDim :: (CInt, CInt)
+tileDim = (50, 50)
 
-pos1 :: (Float, Float)
-pos1 = (10.0, 10.0)
+pos1 :: (CInt, CInt)
+pos1 = (10, 10)
 
-pos2 :: (Float, Float)
-pos2 = (30.0, 340.0)
+pos2 :: (CInt, CInt)
+pos2 = (30, 340)
 
-pos3 :: (Float, Float)
-pos3 = (100.0, 80.0)
+pos3 :: (CInt, CInt)
+pos3 = (100, 80)
 
 --TEMP! for square movement
-un :: Float
+un :: CInt
 un = 10
 -- move to render!
-col1 :: Color4 Float
-col1 = Color4 1.0 1.0 1.0 1.0 --bial
+col1 :: V4 Word8
+col1 = V4 255 255 255 255 --bial
 
-col2 :: Color4 Float
-col2 = Color4 1.0 1.0 0.0 1.0 --zolty
+col2 :: V4 Word8
+col2 = V4 255 255 0 255 --zolty
 
-col3 :: Color4 Float
-col3 = Color4 1.0 0.0 1.0 1.0 --roz
+col3 :: V4 Word8
+col3 = V4 255 0 255 255 --roz

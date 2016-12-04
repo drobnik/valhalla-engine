@@ -19,9 +19,9 @@ import Graphics.Rendering.OpenGL
 
 -- moze zaleznosc engine do tefo?
 data Engine = Engine
-                { windowManager :: WindowManager -- bedzie miec opcje inita, nazwa, etc
-                , renderEngine :: Renderer
-                , engineS :: IORef D.EngineState -- przechowywanie i obliczanie dt
+                { windowManager :: WindowManager
+--                , renderEngine :: ValRender
+                , engineS :: IORef D.EngineState
                  --, loader :: Loader -- opcje ladowania swiata i assetow
                 --, physics :: Physics
                 --, update :: DeltaTime -> a -> a -- zmiana stanu gry
@@ -30,9 +30,9 @@ data Engine = Engine
 
 sampleEngine :: IORef D.EngineState -> Engine
 sampleEngine es = Engine {windowManager = sampleWinManager
-                      , renderEngine = initRender
-                      , engineS = es
-                      }
+                         --, renderEngine = initRender
+                         , engineS = es
+                         }
 
 -- chyba engineState tez IORef, bo trzeba nalozyc zmiane dt
 gameUpdate :: IORef EngineState -> IORef GameState -> IO ()
@@ -49,11 +49,8 @@ gameUpdate es gs = do
 
 -- po callbacku podmieniaj stan silnika!
 runEngine :: Engine -> IORef GameState -> IO ()
-runEngine e@(Engine win ren eState) gs = do
-  initW win ren
-  inputCallback eState
+runEngine e@(Engine win eState) gs = do
+  (window, renderer) <- initWin win
+  --inputCallback eState
   gameState <- readIORef gs --tutaj jest pieklo
-  displayCallback $= renderPipeline gameState
-  reshapeCallback $= Just reshape
-  gameUpdate eState gs
-  mainLoop
+  return ()

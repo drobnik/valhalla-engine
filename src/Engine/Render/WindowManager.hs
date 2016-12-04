@@ -1,46 +1,46 @@
+{-# LANGUAGE BangPatterns, OverloadedStrings #-}
 module Render.WindowManager where
 
 import Render.Utils
 import Engine.Consts
 import qualified SDL
+import SDL (($=))
+import SDL.Vect
 import Data.Int
+import Data.Text
+import Foreign.C.Types
 
 -- dodac potem reportowanie z gluta -> reportErrors
 -- | supports only one window for now, sry
 
 -- dla inicjalizacji okna
 class Initializable a where
-  initW :: (Graphic b) => a -> b -> IO ()
+  initWin :: a -> IO (SDL.Window, SDL.Renderer)
 
 data WindowManager = WindowManager
-                     { title :: !String
-                   , winSize  :: !Size --TODO MVar Size -> GlSizei == Int32
-                   , winPos :: !Position
-                   , displayMode :: ![DisplayMode]
-                   , winStatus :: !WindowStatus --TODO: no glut + IORef / Hid
-                   } -- + info about cursor
+                     { title :: Text
+                     , winSize :: !(CInt, CInt)
+                     , winPos :: !(CInt, CInt)
+                     }
 
 instance Initializable WindowManager where
-  initW (WindowManager t siz pos dis _) ren = do
-    _ <- getArgsAndInitialize
-    initialDisplayMode $= dis
-    initialWindowSize $= siz
-    initialWindowPosition $= pos
-    _ <- createWindow t -- chyba nie mozna tak no!
-    renderInit ren
+  initWin (WindowManager t (w,h) (x,y)) = do
+    initSDL
+    window <- SDL.createWindow t
+              SDL.defaultWindow{ SDL.windowInitialSize = V2 w h
+                               , SDL.windowPosition = SDL.Centered }
 
+    SDL.showWindow window
+    renderer <- renderInit window
+    return (window, renderer)
 
---resizecallback
-
-initWinManager :: String -> Size -> Position -> WindowManager
-initWinManager title' size pos = -- TODO \(mode, status) ->
+initWinManager :: Text -> (CInt, CInt) -> (CInt, CInt) -> WindowManager
+initWinManager title' size pos =
   WindowManager { title = title'
                 , winSize = size
                 , winPos = pos
-                , displayMode = [SingleBuffered]
-                , winStatus = Shown
                 }
 
 sampleWinManager :: WindowManager
-sampleWinManager = initWinManager "Testing.." (Size viewWidth viewHeight)
-                   (Position posit posit)
+sampleWinManager = initWinManager "Testing.." (viewWidth, viewHeight)
+                   (posit, posit)
