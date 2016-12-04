@@ -2,7 +2,10 @@ module Render.Model where
 
 import Render.Primitives
 import Engine.Consts
+import Data.Word
 import Graphics.Rendering.OpenGL
+import SDL
+--import SDL.Vect
 import Data.Map
 
 -- wywalic rozowy z sampla
@@ -10,7 +13,7 @@ data RenderModel = RenderModel
                  { dim :: Dimensions
                  , pos :: CenterPosition --lewy-gorny POPRAWIC
                  --, texture :: Texture
-                 , modelColor :: Color4 Float
+                 , modelColor :: V4 Word8
                  , renderInstr :: [RenderCom]
                  } deriving (Show, Eq, Ord)
 

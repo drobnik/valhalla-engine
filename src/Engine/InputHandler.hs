@@ -1,8 +1,8 @@
 module Engine.InputHandler where
 
 import qualified SDL
-import Prelude as P
-import Data.Set as S
+import Prelude
+import qualified Data.Set as S
 import Data.IORef
 import Engine.Datas
 import Control.Monad

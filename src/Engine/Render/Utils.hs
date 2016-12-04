@@ -1,7 +1,9 @@
 module Render.Utils where
 
 import Control.Monad.ST
+import SDL (($=))
 import qualified SDL
+--import SDL.Vect
 import Engine.Datas
 import Render.Primitives
 import Engine.Consts
@@ -9,59 +11,46 @@ import Render.Model
 import GameState
 
 
-class Graphic a where
-  renderInit :: a -> IO ()
---  renderPipeline :: a -> IO ()
--- viewport -> camera!
-data Renderer = Renderer
-                { mMode :: MatrixMode
-                , clearC :: Color4 Float
+data ValRender = ValRender
+                { renderer :: IO SDL.Renderer
                 }
 
-instance Graphic Renderer where
-  renderInit (Renderer m c) = do
-    clearColor $= c
-    matrixMode $= m
-    loadIdentity
-    ortho 0 (realToFrac viewWidth) (realToFrac viewHeight) 0 (-1) 1
+renderInit :: SDL.Window -> SDL.Renderer
+renderInit win = do
+    SDL.initialize [SDL.InitVideo]
+    SDL.HintRenderScaleQuality $= SDL.ScaleLinear
 
+    renderer <- SDL.createRenderer window (-1) SDL.defaultRendererConfig
+    SDL.rendererDrawColor renderer $= V4 0 0 0 0
+    return renderer
 
-renderPipeline :: GameState -> IO ()
-renderPipeline (GameState _ _ models)  = do
-    clear [ColorBuffer]
-    mapM_ renderModel (getModels models)
-    flush
+renderPipeline :: SDL.Renderer -> GameState -> IO ()
+renderPipeline ren (GameState _ _ models)  = do
+    SDL.clear ren
+    -- SDL.copy ren texture Nothing Nothing
+    mapM_ (renderModel ren) (getModels models)
+    SDL.present renderer
 
--- renderPipeline = (2)renderModels + (1)renderMap + (3)renderUI
+renderModel :: SDL.Renderer -> RenderModel -> IO ()
+renderModel render x@(RenderModel) = do
+  interpretComs render $ draw x
 
-renderModel :: RenderModel -> IO ()
-renderModel x = interpretComs $ draw x
-
-interpretComs :: [RenderCom] -> IO ()
-interpretComs (x:xs) = do
-  interpretCommand x
-  interpretComs xs
+interpretComs :: SDL.Renderer -> [RenderCom] -> IO ()
+interpretComs ren (x:xs) = do
+  interpretCommand ren x
+  interpretComs ren xs
 interpretComs [] = return ()
 
-interpretCommand :: RenderCom -> IO ()
-interpretCommand x = case x of
+interpretCommand :: SDL.Renderer -> RenderCom -> IO ()
+interpretCommand ren x = case x of
     RenderRectangle (w, h) (x1, y1) ->
-      rect (Vertex2 x1 y1) (Vertex2 (w + x1) (h + y1))
+      SDL.fillRect ren (Just $ SDL.Rectangle (P $ V2 x1 y1) (V2 w h))
     RenderColor colorF ->
-      color colorF
+      SDL.rendererDrawColor ren $= colorF
+    RenderTexture texture ->
+      SDL.copy ren texture Nothing Nothing
+
     RenderRotate angle -> undefined
     RenderTranslate (x, y) -> undefined
     RenderScale factor -> undefined
     RenderText text -> undefined
-
--- later - add a position of player for viewport
-reshape :: ReshapeCallback
-reshape siz = do
-  viewport $= ((Position 0 0), (Size viewWidth viewHeight))
-  postRedisplay Nothing
-
-
-initRender :: Renderer
-initRender = Renderer { mMode = Projection
-                      , clearC = Color4 0 0 0 0
-                      }
