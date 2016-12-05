@@ -16,10 +16,11 @@ handleEvents es events = foldMap (\ev -> inputUpdate es ev) events
   where
     inputUpdate :: IORef EngineState -> SDL.EventPayload -> IO ()
     inputUpdate estate e = case e of
+--      SDL.QuitEvent -> closeGame estate
       SDL.KeyboardEvent es -> keyboardEvents es estate
       SDL.MouseMotionEvent es -> return ()
       SDL.MouseButtonEvent es -> return () --temp
-
+      _ -> return ()
 
 keyboardEvents :: SDL.KeyboardEventData -> IORef EngineState -> IO ()
 keyboardEvents e estate

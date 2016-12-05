@@ -66,5 +66,5 @@ dummyModel = RenderModel
             , pos = pos3
             , texture = undefined
             , modelColor = V4 0 0 0 255
-            , renderInstr = sampleInstr tileDim pos3 col3
+            , renderInstr = sampleInstr tileDim pos3 (V4 0 0 0 255)
             }

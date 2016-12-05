@@ -1,6 +1,7 @@
 module Render.Utils where
 
 import Control.Monad.ST
+import Data.Map
 import qualified SDL
 import SDL.Vect
 import SDL (($=))
@@ -23,14 +24,14 @@ initSDL = do
 renderInit :: SDL.Window -> IO SDL.Renderer
 renderInit win = do
     renderer <- SDL.createRenderer win (-1) SDL.defaultRenderer
-    SDL.rendererDrawColor renderer $= V4 0 0 0 0
+    SDL.rendererDrawColor renderer $= V4 0 0 0 maxBound
     return renderer
 
 renderPipeline :: SDL.Renderer -> GameState -> IO ()
-renderPipeline ren (GameState _ _ models)  = do
+renderPipeline ren gs = do
     SDL.clear ren
     -- SDL.copy ren texture Nothing Nothing
-    mapM_ (renderModel ren) (getModels models)
+    mapM_ (renderModel ren) (getModelsSet gs)
     SDL.present ren
 
 renderModel :: SDL.Renderer -> RenderModel -> IO ()

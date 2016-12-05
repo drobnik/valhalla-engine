@@ -13,13 +13,26 @@ type PixOff = (CInt, CInt) -- x ; y
 data EngineState = EngineState
                  { keys :: ActiveKeys
                  , dt :: Double -- last delta time
+--                 , over :: Bool
                  }
 
 getKeys :: EngineState -> ActiveKeys
 getKeys (EngineState keys _) = keys
 
+{-
+closeGame :: IORef EngineState -> IO ()
+closeGame es = do
+  eState <- readIORef es
+  writeIORef es (eState{ over = True })
+-}
+--TEMP
+isOver :: EngineState -> Bool
+isOver (EngineState keys _) = (SDL.KeycodeEscape `elem` keys) ||
+                              (SDL.KeycodeQ `elem` keys)
+
 sampleState :: EngineState
 sampleState = EngineState
               { keys = empty :: Set SDL.Keycode
               , dt = 0.0
+--              , over = False
               }

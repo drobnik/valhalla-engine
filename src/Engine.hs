@@ -9,11 +9,9 @@ import Render.Model --TEMP
 import GameState --TEMP
 import GameData
 import Data.IORef
+import Control.Monad
 import GameState (GameState)
-import Graphics.Rendering.OpenGL
-
--- | Definitions of engine specific classes and datas, f.e.
--- | GameEngine, GameState and Renderer
+import qualified SDL
 
 -- http://hastebin.com/ezidakuhoq.hs == UPDATE!
 
@@ -34,23 +32,18 @@ sampleEngine es = Engine {windowManager = sampleWinManager
                          , engineS = es
                          }
 
--- chyba engineState tez IORef, bo trzeba nalozyc zmiane dt
-gameUpdate :: IORef EngineState -> IORef GameState -> IO ()
-gameUpdate es gs = do
-  engineState <- readIORef es
-  gameState <- readIORef gs
-  let keys = getKeys engineState
-      models = getModelsSet gameState
-      model = getModelKey 3 models --roz
-      pos = modelPosition keys (renPos model) --fakap
-      --model' = modifyModelPos model pos
-      -- modyfikuj mape i nadpisz ja
-  return ()
-
 -- po callbacku podmieniaj stan silnika!
 runEngine :: Engine -> IORef GameState -> IO ()
 runEngine e@(Engine win eState) gs = do
   (window, renderer) <- initWin win
-  --inputCallback eState
-  gameState <- readIORef gs --tutaj jest pieklo
-  return ()
+  game <- readIORef gs --useless
+  engineLoop game eState window renderer
+
+
+engineLoop :: GameState -> IORef EngineState
+           -> SDL.Window -> SDL.Renderer -> IO ()
+engineLoop gs@(GameState _ _ models) es win ren = do
+  inputCallback es
+  renderPipeline ren gs
+  eState <- readIORef es
+  unless (isOver eState) (engineLoop gs es win ren)
