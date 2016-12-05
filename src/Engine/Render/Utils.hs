@@ -32,6 +32,7 @@ renderPipeline ren gs = do
     SDL.clear ren
     -- SDL.copy ren texture Nothing Nothing
     mapM_ (renderModel ren) (getModelsSet gs)
+    SDL.rendererDrawColor ren $= V4 10 10 10 255 --attention required
     SDL.present ren
 
 renderModel :: SDL.Renderer -> RenderModel -> IO ()

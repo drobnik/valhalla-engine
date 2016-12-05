@@ -53,7 +53,7 @@ sampleSet = insert 1 x $ insert 2 y $ insert 3 z $ sete
             , pos = pos3
             , texture = undefined
             , modelColor = col3
-            , renderInstr = sampleInstr tileDim pos3 col3
+            , renderInstr = sampleInstr tileDim pos3 (V4 0 10 100 255)
             }
         sete = empty
 
@@ -66,5 +66,5 @@ dummyModel = RenderModel
             , pos = pos3
             , texture = undefined
             , modelColor = V4 0 0 0 255
-            , renderInstr = sampleInstr tileDim pos3 (V4 0 0 0 255)
+            , renderInstr = sampleInstr tileDim pos3 col3
             }
