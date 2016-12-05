@@ -4,7 +4,7 @@ module Engine where
 import Render.Utils
 import Render.WindowManager
 import Engine.InputHandler
-import Engine.Datas as D
+import Engine.Datas
 import Render.Model --TEMP
 import GameState --TEMP
 import GameData
@@ -18,17 +18,15 @@ import qualified SDL
 -- moze zaleznosc engine do tefo?
 data Engine = Engine
                 { windowManager :: WindowManager
---                , renderEngine :: ValRender
-                , engineS :: IORef D.EngineState
+                , engineS :: IORef EngineState
                  --, loader :: Loader -- opcje ladowania swiata i assetow
                 --, physics :: Physics
                 --, update :: DeltaTime -> a -> a -- zmiana stanu gry
                 }
 
 
-sampleEngine :: IORef D.EngineState -> Engine
+sampleEngine :: IORef EngineState -> Engine
 sampleEngine es = Engine {windowManager = sampleWinManager
-                         --, renderEngine = initRender
                          , engineS = es
                          }
 
@@ -36,14 +34,18 @@ sampleEngine es = Engine {windowManager = sampleWinManager
 runEngine :: Engine -> IORef GameState -> IO ()
 runEngine e@(Engine win eState) gs = do
   (window, renderer) <- initWin win
-  game <- readIORef gs --useless
-  engineLoop game eState window renderer
+  engineLoop gs eState window renderer
 
+  SDL.destroyRenderer renderer
+  SDL.destroyWindow window
+  SDL.quit
 
-engineLoop :: GameState -> IORef EngineState
+engineLoop ::IORef GameState -> IORef EngineState
            -> SDL.Window -> SDL.Renderer -> IO ()
-engineLoop gs@(GameState _ _ models) es win ren = do
+engineLoop gs es win ren = do
   inputCallback es
-  renderPipeline ren gs
+  gameState <- readIORef gs
+  renderPipeline ren gameState
   eState <- readIORef es
+  gameLoop es gs
   unless (isOver eState) (engineLoop gs es win ren)

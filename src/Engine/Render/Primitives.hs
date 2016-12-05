@@ -9,7 +9,8 @@ import Data.Word
 type Dimensions = (CInt, CInt)
 type CenterPosition = (CInt, CInt)
 
--- rendering commnads for renderModel | trza do osobnego modulu przenisc jednak
+-- maybe operations for the module?
+
 data RenderCom = RenderRectangle Dimensions CenterPosition
                | RenderColor (V4 Word8)
                | RenderRotate Float -- angle
@@ -26,9 +27,3 @@ instance Ord Texture where
 
 instance Show Texture where
   show t = "some texture"
---CLEANUP
-modifyPos :: [RenderCom] -> [RenderCom] -> CenterPosition -> [RenderCom]
-modifyPos (x:xs) renAcc pos' = case x of
-  RenderRectangle dim pos -> renAcc ++ [(RenderRectangle dim pos')] ++ xs
-  _                       -> modifyPos xs (x:renAcc) pos'
-modifyPos [] renAcc pos' = renAcc

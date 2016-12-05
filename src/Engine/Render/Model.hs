@@ -26,11 +26,18 @@ renPos (RenderModel _ pos _  _ _) = pos
 modifyModelPos :: RenderModel -> CenterPosition -> RenderModel
 modifyModelPos (RenderModel d po tex col rend) pos' = RenderModel
                                                    { dim = d
-                                                   , pos = po
+                                                   , pos = pos'
                                                    , texture = tex
                                                    , modelColor = col
                                                    , renderInstr = modifyPos rend [] pos'
                                                    }
+
+modifyPos :: [RenderCom] -> [RenderCom] -> CenterPosition -> [RenderCom]
+modifyPos (x:xs) renAcc pos' = case x of
+  RenderRectangle dim pos -> renAcc ++ [(RenderRectangle dim pos')] ++ xs
+  _                       -> modifyPos xs (x:renAcc) pos'
+modifyPos [] renAcc pos' = renAcc
+
 
 sampleSet :: Map Int RenderModel
 sampleSet = insert 1 x $ insert 2 y $ insert 3 z $ sete

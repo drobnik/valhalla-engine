@@ -3,8 +3,11 @@ module GameData where
 import qualified SDL
 import Engine.Datas
 import Engine.Consts
-import Render.Primitives
 import Data.Set as Set
+import Data.IORef
+import GameState
+import Render.Model (modifyModelPos, renPos)
+import Render.Primitives
 --temporary module
 
 --game specific directions + commands
@@ -37,3 +40,15 @@ modelPosition keys pos = calcPos pos (transDirection (0, 0)  dirs)
   where
     dirs = transformSet keys transformKeys
     calcPos (xp, yp) (x', y') = ((xp + x'), (yp + y'))
+
+
+gameLoop :: IORef EngineState -> IORef GameState -> IO ()
+gameLoop es gs = do
+  engineState <- readIORef es
+  gameState <- readIORef gs
+  let activeKeys = getKeys engineState
+      models = getModelsSet gameState
+      model = getModelKey heroKey models
+      position = modelPosition activeKeys (renPos model)
+      model' = modifyModelPos model position
+  writeIORef gs (modifyModelsSet models model' heroKey gameState)

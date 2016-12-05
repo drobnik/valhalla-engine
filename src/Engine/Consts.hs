@@ -20,6 +20,10 @@ posit = 100
 startTime :: Double
 startTime = 0.0
 
+--TEMP
+heroKey :: Int
+heroKey = 3
+
 -- | A fixed timestep. Used to indicate if some
 -- additional updates are needed or frames need to be dropped; in milisec
 targetElapsedTime :: Double

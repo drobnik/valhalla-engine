@@ -38,13 +38,15 @@ getModels models = runST models
 modifyModelsSet :: Map Int RenderModel -> RenderModel
                 -> Int -> GameState
                 -> GameState
-modifyModelsSet modMap rm n (GameState liv lvl models) = undefined {-GameState
+modifyModelsSet modMap rm n (GameState liv lvl models) = GameState
                                                          { lives = liv
                                                          , level = lvl
-                                                         , modelsSet = sick models
+                                                         , modelsSet = modMap'
                                                          }
-  where sick mods = runST $ writeSTRef mods modMap'
-        modMap' = Map.insert n rm modMap-}
+  where modMap' = do
+          modsMap <- newSTRef (Map.insert n rm modMap) --bez sensu taki ST
+          readSTRef modsMap
+
 
 initStateG :: GameState
 initStateG = GameState {lives = 1, level = 1, modelsSet = initModels}
