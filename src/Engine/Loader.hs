@@ -23,3 +23,17 @@ loadTexture ren path = do
   tex <- SDL.createTextureFromSurface ren surface
   SDL.freeSurface surface
   return (Texture tex size)
+
+--load textures for every rendermodel in the map + more
+{-loadGame :: SDL.Renderer -> IORef GameState
+         -> Map FilePath Texture -> IO ()
+loadGame ren gs textures = do
+  gameState <- readIORef gs
+    let models = getModelsSet gameState
+        loadedModels = loadModels ren models textures
+
+  writeIORef gs (gameState{ modelsSet = loadedModels })
+
+loadModels :: SDL.Renderer -> Map Int RenderModel -> Map FilePath Texture
+           -> Map Int RenderModel
+loadModels ren models textures = do-}

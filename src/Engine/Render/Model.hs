@@ -46,7 +46,7 @@ sampleSet = insert 1 x $ insert 2 y $ insert 3 z {- $ insert 4 pi-} $ sete
   where x = RenderModel
             { dim = tileDim
             , pos = pos1
-            , path = undefined
+            , path = []
             , texture = undefined
             , modelColor = col1
             , renderInstr = sampleInstr tileDim pos1 col1
@@ -54,7 +54,7 @@ sampleSet = insert 1 x $ insert 2 y $ insert 3 z {- $ insert 4 pi-} $ sete
         y = RenderModel
             { dim = tileDim
             , pos = pos2
-            , path = undefined
+            , path = []
             , texture = undefined
             , modelColor = col2
             , renderInstr = sampleInstr tileDim pos2 col2
@@ -62,7 +62,7 @@ sampleSet = insert 1 x $ insert 2 y $ insert 3 z {- $ insert 4 pi-} $ sete
         z = RenderModel
             { dim = tileDim
             , pos = pos3
-            , path = undefined
+            , path = []
             , texture = undefined
             , modelColor = col3
             , renderInstr = sampleInstr tileDim pos3 (V4 0 10 100 255)
@@ -76,6 +76,8 @@ sampleSet = insert 1 x $ insert 2 y $ insert 3 z {- $ insert 4 pi-} $ sete
              } -}
         sete = empty
 
+
+-- TEMP
 sampleInstr :: Dimensions -> CenterPosition -> V4 Word8 -> [RenderCom]
 sampleInstr dim pos color = [RenderColor color, (RenderRectangle dim pos)]
 

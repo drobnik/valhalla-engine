@@ -12,7 +12,7 @@ import Data.IORef
 import Control.Monad
 import GameState (GameState)
 import qualified SDL
-
+import qualified Data.Map as Map
 -- http://hastebin.com/ezidakuhoq.hs == UPDATE!
 
 -- moze zaleznosc engine do tefo?
@@ -34,6 +34,7 @@ sampleEngine es = Engine {windowManager = sampleWinManager
 runEngine :: Engine -> IORef GameState -> IO ()
 runEngine e@(Engine win eState) gs = do
   (window, renderer) <- initWin win
+--  loadModels renderer Map.empty gs
   engineLoop gs eState window renderer
 
   SDL.destroyRenderer renderer
