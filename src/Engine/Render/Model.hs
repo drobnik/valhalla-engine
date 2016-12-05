@@ -11,6 +11,7 @@ import Data.Map
 data RenderModel = RenderModel
                  { dim :: Dimensions
                  , pos :: CenterPosition --lewy-gorny POPRAWIC
+                 , path :: FilePath
                  , texture :: Texture
                  , modelColor :: V4 Word8
                  , renderInstr :: [RenderCom]
@@ -18,15 +19,16 @@ data RenderModel = RenderModel
 
 -- for now: render with default font
 draw :: RenderModel -> [RenderCom]
-draw (RenderModel _ _ _  _ render) = render
+draw (RenderModel _ _ _ _ _ render) = render
 
 renPos :: RenderModel -> CenterPosition
-renPos (RenderModel _ pos _  _ _) = pos
+renPos (RenderModel _ pos _ _ _ _) = pos
 
 modifyModelPos :: RenderModel -> CenterPosition -> RenderModel
-modifyModelPos (RenderModel d po tex col rend) pos' = RenderModel
+modifyModelPos (RenderModel d po path' tex col rend) pos' = RenderModel
                                                    { dim = d
                                                    , pos = pos'
+                                                   , path = path'
                                                    , texture = tex
                                                    , modelColor = col
                                                    , renderInstr = modifyPos rend [] pos'
@@ -40,10 +42,11 @@ modifyPos [] renAcc pos' = renAcc
 
 
 sampleSet :: Map Int RenderModel
-sampleSet = insert 1 x $ insert 2 y $ insert 3 z $ sete
+sampleSet = insert 1 x $ insert 2 y $ insert 3 z {- $ insert 4 pi-} $ sete
   where x = RenderModel
             { dim = tileDim
             , pos = pos1
+            , path = undefined
             , texture = undefined
             , modelColor = col1
             , renderInstr = sampleInstr tileDim pos1 col1
@@ -51,6 +54,7 @@ sampleSet = insert 1 x $ insert 2 y $ insert 3 z $ sete
         y = RenderModel
             { dim = tileDim
             , pos = pos2
+            , path = undefined
             , texture = undefined
             , modelColor = col2
             , renderInstr = sampleInstr tileDim pos2 col2
@@ -58,10 +62,18 @@ sampleSet = insert 1 x $ insert 2 y $ insert 3 z $ sete
         z = RenderModel
             { dim = tileDim
             , pos = pos3
+            , path = undefined
             , texture = undefined
             , modelColor = col3
             , renderInstr = sampleInstr tileDim pos3 (V4 0 10 100 255)
             }
+       {- pi = RenderModel
+             { dim = (128, 32)
+             , pos = (200, 50)
+             , path = "Sample/Data/tiles.bmp"
+             , texture = noTexture
+             , renderInstr = undefined -- defined during texture loading
+             } -}
         sete = empty
 
 sampleInstr :: Dimensions -> CenterPosition -> V4 Word8 -> [RenderCom]
@@ -71,7 +83,11 @@ dummyModel :: RenderModel
 dummyModel = RenderModel
             { dim = tileDim
             , pos = pos3
+            , path = undefined
             , texture = undefined
             , modelColor = V4 0 0 0 255
             , renderInstr = sampleInstr tileDim pos3 col3
             }
+
+noTexture :: Texture
+noTexture = undefined

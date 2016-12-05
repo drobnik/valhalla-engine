@@ -1,7 +1,7 @@
 module Render.Primitives where
 
 
-import SDL (Texture)
+import SDL (Texture, Rectangle (..))
 import SDL.Vect
 import Foreign.C.Types
 import Data.Word
@@ -18,6 +18,8 @@ data RenderCom = RenderRectangle Dimensions CenterPosition
                | RenderScale Float
                | RenderText String --TODO
                | RenderTexture Texture
+               | RenderFrame Texture (Maybe (Rectangle CInt)) --add info about frames!
+                 (Maybe (Rectangle CInt))
               deriving (Eq, Ord, Show)
 -- + renderWithCamera + alpha + texture
 

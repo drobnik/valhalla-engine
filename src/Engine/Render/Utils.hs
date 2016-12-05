@@ -12,9 +12,6 @@ import Render.Model
 import GameState
 import Control.Concurrent
 
-data ValRender = ValRender
-                { renderer :: IO SDL.Renderer
-                }
 
 initSDL :: IO ()
 initSDL = do
@@ -30,7 +27,6 @@ renderInit win = do
 renderPipeline :: SDL.Renderer -> GameState -> IO ()
 renderPipeline ren gs = do
     SDL.clear ren
-    -- SDL.copy ren texture Nothing Nothing
     mapM_ (renderModel ren) (getModelsSet gs)
     threadDelay 5000
     SDL.rendererDrawColor ren $= V4 10 10 10 255 --attention required
@@ -55,6 +51,7 @@ interpretCommand ren x = case x of
     RenderTexture texture ->
       SDL.copy ren texture Nothing Nothing
 
+    RenderFrame texture sourceRec destiRect -> undefined
     RenderRotate angle -> undefined
     RenderTranslate (x, y) -> undefined
     RenderScale factor -> undefined

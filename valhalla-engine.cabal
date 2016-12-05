@@ -17,7 +17,7 @@ library
   hs-source-dirs:      src, src/Sample/, src/Engine/
   other-modules:       Engine, Engine.InputHandler, Engine.Datas
                      , Render.WindowManager, GameState, Engine.Consts
-                     , Render.Utils, Render.Primitives
+                     , Render.Utils, Render.Primitives, Engine.Loader
                      , Render.Model, GameData
   exposed-modules:     GameMain
 
