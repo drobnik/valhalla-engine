@@ -24,7 +24,7 @@ data RenderCom = RenderRectangle Dimensions CenterPosition
                | RenderTranslate (Float, Float)
                | RenderScale Float
                | RenderText String --TODO
-               | RenderTexture Texture
+               | RenderTexture Texture CenterPosition
                | RenderFrame Texture (Maybe (Rectangle CInt)) --add info about frames!
                  (Maybe (Rectangle CInt))
               deriving (Eq, Ord, Show)

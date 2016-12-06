@@ -41,18 +41,18 @@ loadModels [] modelsMap _ _ = return modelsMap
 
 loadModel :: (Int, RenderModel) -> Map FilePath Texture -> SDL.Renderer
           -> IO ((Int, RenderModel), (Map FilePath Texture))
-loadModel (i, rm@(RenderModel _ _ path' tex _ instruct)) texMap ren
+loadModel (i, rm@(RenderModel _ pos path' tex _ instruct)) texMap ren
   | null path' = return ((i, rm), texMap)
   | path' `M.member` texMap = do
       let tex' = fromMaybe noTexture (M.lookup path' texMap)
       return ((i, rm{ texture = tex'
                              , renderInstr = instruct --later: indicate animated RM
-                                       ++ [RenderTexture tex']
+                                       ++ [RenderTexture tex' pos]
                              }) , texMap)
   | otherwise = do
       tex' <- loadTexture ren path'
       let texMap' = M.insert path' tex' texMap
       return ((i, rm{ texture = tex'
                              , renderInstr = instruct
-                                       ++ [RenderTexture tex']
+                                       ++ [RenderTexture tex' pos]
                              }) , texMap')

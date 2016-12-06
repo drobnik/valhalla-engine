@@ -13,6 +13,9 @@ build-type:          Simple
 -- extra-source-files:
 cabal-version:       >=1.10
 
+data-files:
+   example_data/*.bmp
+
 library
   hs-source-dirs:      src, src/Sample/, src/Engine/
   other-modules:       Engine, Engine.InputHandler, Engine.Datas

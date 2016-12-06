@@ -47,8 +47,8 @@ interpretCommand ren x = case x of
       SDL.fillRect ren (Just $ SDL.Rectangle (P $ V2 x1 y1) (V2 w h))
     RenderColor colorF ->
       SDL.rendererDrawColor ren $= colorF
-    RenderTexture (Texture texture _) ->
-      SDL.copy ren texture Nothing Nothing
+    RenderTexture (Texture texture (V2 w h)) (x, y) ->
+      SDL.copy ren texture Nothing (Just (SDL.Rectangle (P $ V2 x y) (V2 w h)))
 
     RenderFrame texture sourceRec destiRect -> undefined
     RenderRotate angle -> undefined

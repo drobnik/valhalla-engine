@@ -44,7 +44,7 @@ modifyPos [] renAcc pos' = renAcc
 
 
 sampleSet :: Map Int RenderModel
-sampleSet = insert 1 x $ insert 2 y $ insert 3 z {-$ insert 4 pi-} $ sete
+sampleSet = insert 1 x $ insert 2 y $ insert 3 z $ insert 4 pi $ sete
   where x = RenderModel
             { dim = tileDim
             , pos = pos1
@@ -72,7 +72,7 @@ sampleSet = insert 1 x $ insert 2 y $ insert 3 z {-$ insert 4 pi-} $ sete
         pi = RenderModel
              { dim = (128, 32)
              , pos = (200, 50)
-             , path = "src/Sample/Data/tiles.bmp"
+             , path = "example_data/tiles.bmp"
              , texture = noTexture
              , modelColor = col2
              , renderInstr = []
