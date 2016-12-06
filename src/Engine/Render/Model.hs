@@ -2,10 +2,12 @@ module Render.Model where
 
 import Render.Primitives
 import Engine.Consts
+import Foreign.C.Types
 import Data.Word
-import SDL (Texture)
+import qualified SDL (Texture)
 import SDL.Vect --constr
 import Data.Map
+
 
 -- wywalic rozowy z sampla
 data RenderModel = RenderModel
@@ -90,6 +92,3 @@ dummyModel = RenderModel
             , modelColor = V4 0 0 0 255
             , renderInstr = sampleInstr tileDim pos3 col3
             }
-
-noTexture :: Texture
-noTexture = undefined

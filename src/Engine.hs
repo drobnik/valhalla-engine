@@ -5,7 +5,7 @@ import Render.Utils
 import Render.WindowManager
 import Engine.InputHandler
 import Engine.Datas
-import Render.Model --TEMP
+import Engine.Loader
 import GameState --TEMP
 import GameData
 import Data.IORef
@@ -34,9 +34,8 @@ sampleEngine es = Engine {windowManager = sampleWinManager
 runEngine :: Engine -> IORef GameState -> IO ()
 runEngine e@(Engine win eState) gs = do
   (window, renderer) <- initWin win
---  loadModels renderer Map.empty gs
+  loadGame renderer gs Map.empty
   engineLoop gs eState window renderer
-
   SDL.destroyRenderer renderer
   SDL.destroyWindow window
   SDL.quit

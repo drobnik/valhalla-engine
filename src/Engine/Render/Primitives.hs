@@ -1,7 +1,8 @@
 module Render.Primitives where
 
 
-import SDL (Texture, Rectangle (..))
+import SDL (Rectangle (..))
+import qualified SDL (Texture)
 import SDL.Vect
 import Foreign.C.Types
 import Data.Word
@@ -9,7 +10,13 @@ import Data.Word
 type Dimensions = (CInt, CInt)
 type CenterPosition = (CInt, CInt)
 
--- maybe operations for the module?
+data Texture = Texture
+             { tex :: SDL.Texture
+             , size :: V2 CInt
+             } deriving (Show, Eq, Ord)
+
+noTexture :: Texture
+noTexture = undefined
 
 data RenderCom = RenderRectangle Dimensions CenterPosition
                | RenderColor (V4 Word8)
@@ -24,8 +31,8 @@ data RenderCom = RenderRectangle Dimensions CenterPosition
 -- + renderWithCamera + alpha + texture
 
 --TEMP hacks
-instance Ord Texture where
+instance Ord SDL.Texture where
   compare t1 t2 = LT
 
-instance Show Texture where
+instance Show SDL.Texture where
   show t = "some texture"

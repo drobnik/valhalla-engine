@@ -1,6 +1,5 @@
 module Render.Utils where
 
-import Control.Monad.ST
 import Data.Map
 import qualified SDL
 import SDL.Vect
@@ -48,7 +47,7 @@ interpretCommand ren x = case x of
       SDL.fillRect ren (Just $ SDL.Rectangle (P $ V2 x1 y1) (V2 w h))
     RenderColor colorF ->
       SDL.rendererDrawColor ren $= colorF
-    RenderTexture texture ->
+    RenderTexture (Texture texture _) ->
       SDL.copy ren texture Nothing Nothing
 
     RenderFrame texture sourceRec destiRect -> undefined

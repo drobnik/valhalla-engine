@@ -18,7 +18,7 @@ library
   other-modules:       Engine, Engine.InputHandler, Engine.Datas
                      , Render.WindowManager, GameState, Engine.Consts
                      , Render.Utils, Render.Primitives, Engine.Loader
-                     , Render.Model, GameData
+                     , Render.Model, GameData, Paths_valhalla_engine
   exposed-modules:     GameMain
 
   build-depends:       base >= 4.7 && < 5
