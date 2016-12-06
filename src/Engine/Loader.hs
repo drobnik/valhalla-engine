@@ -25,13 +25,11 @@ loadTexture ren path = do
   return (Texture tex size)
 
 --load textures for every rendermodel in the map + more
-loadGame :: SDL.Renderer -> IORef GameState
-         -> Map FilePath Texture -> IO ()
-loadGame ren gs textures = do
+loadGame :: SDL.Renderer -> IORef GameState -> IO ()
+loadGame ren gs = do
   gameState <- readIORef gs
   let listModel = M.toList $ getModelsSet gameState
   loadedModels <- loadModels listModel M.empty M.empty ren
-  --loadedModels <- mapM (loadModel ren textures) (getModelsSet gameState) --DEFINE
   writeIORef gs (gameState{ modelsSet = loadedModels })
 
 loadModels :: [(Int,RenderModel)] -> Map Int RenderModel -> Map FilePath Texture
@@ -43,11 +41,18 @@ loadModels [] modelsMap _ _ = return modelsMap
 
 loadModel :: (Int, RenderModel) -> Map FilePath Texture -> SDL.Renderer
           -> IO ((Int, RenderModel), (Map FilePath Texture))
-loadModel (i, (RenderModel _ _ path' tex _ instruct)) texMap ren
+loadModel (i, rm@(RenderModel _ _ path' tex _ instruct)) texMap ren
+  | null path' = return ((i, rm), texMap)
   | path' `M.member` texMap = do
       let tex' = fromMaybe noTexture (M.lookup path' texMap)
-      return ((i, RenderModel{ texture = tex'
+      return ((i, rm{ texture = tex'
                              , renderInstr = instruct --later: indicate animated RM
                                        ++ [RenderTexture tex']
                              }) , texMap)
-  | otherwise = undefined-- dodaj do mapy, zaladuj teksture i daj ja do rendermodel
+  | otherwise = do
+      tex' <- loadTexture ren path'
+      let texMap' = M.insert path' tex' texMap
+      return ((i, rm{ texture = tex'
+                             , renderInstr = instruct
+                                       ++ [RenderTexture tex']
+                             }) , texMap')

@@ -34,7 +34,7 @@ sampleEngine es = Engine {windowManager = sampleWinManager
 runEngine :: Engine -> IORef GameState -> IO ()
 runEngine e@(Engine win eState) gs = do
   (window, renderer) <- initWin win
-  loadGame renderer gs Map.empty
+  loadGame renderer gs
   engineLoop gs eState window renderer
   SDL.destroyRenderer renderer
   SDL.destroyWindow window
