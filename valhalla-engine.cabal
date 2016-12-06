@@ -14,7 +14,8 @@ build-type:          Simple
 cabal-version:       >=1.10
 
 data-files:
-   example_data/*.bmp
+           example_data/*.bmp
+           example_data/*.txt
 
 library
   hs-source-dirs:      src, src/Sample/, src/Engine/

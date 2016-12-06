@@ -4,15 +4,31 @@ import qualified SDL
 import Engine.Datas
 import Engine.Consts
 import Data.Set as Set
-import Data.IORef
-import GameState
-import Render.Model (modifyModelPos, renPos)
+import Render.Model (modifyModelPos, renPos, RenderModel(..))
 import Render.Primitives
---temporary module
+import Data.Int
 
 --game specific directions + commands
 data Direction = LeftDir | RightDir | UpDir | DownDir | Unknown | End
   deriving (Show, Eq, Ord)
+
+data TileKind = Sky | Ground | Lava | Spikes
+
+data Tile a = Tile
+              { dim :: (Int32, Int32)
+              , pos :: (Int32, Int32)
+              , kind :: a
+              , model :: RenderModel
+              }
+
+
+data TileMap a = TileMap
+                 { width :: Int
+                 , height :: Int
+                 , tiles :: [Tile a]
+                 }
+
+
 
 transformSet :: ActiveKeys -> (SDL.Keycode -> Direction) -> [Direction]
 transformSet keys f = Set.elems $ Set.map f keys
@@ -40,15 +56,3 @@ modelPosition keys pos = calcPos pos (transDirection (0, 0)  dirs)
   where
     dirs = transformSet keys transformKeys
     calcPos (xp, yp) (x', y') = ((xp + x'), (yp + y'))
-
-
-gameLoop :: IORef EngineState -> IORef GameState -> IO ()
-gameLoop es gs = do
-  engineState <- readIORef es
-  gameState <- readIORef gs
-  let activeKeys = getKeys engineState
-      models = getModelsSet gameState
-      model = getModelKey heroKey models
-      position = modelPosition activeKeys (renPos model)
-      model' = modifyModelPos model position
-  writeIORef gs (modifyModelsSet models model' heroKey gameState)

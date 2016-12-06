@@ -1,4 +1,5 @@
 /.stack-work
+dist
 dist/build
 dist/package.conf.inplace
 *.o

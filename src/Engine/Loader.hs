@@ -8,11 +8,23 @@ import Data.Maybe
 import Render.Model
 import Render.Primitives
 import GameState
+import GameData
 import SDL.Vect
 import SDL (($=))
 import qualified SDL
+import System.IO
 
 import Paths_valhalla_engine (getDataFileName)
+
+--later - move it to some file?
+data LoadConfig = LoadConfig
+                { mapsPath :: FilePath
+                , contentsPath :: FilePath -- fe coin 200 35
+                }
+
+sampleConfig :: LoadConfig
+sampleConfig = LoadConfig { mapsPath = "example_data/levels.txt"
+                          , contentsPath = ""}
 
 --bmp only for now
 loadTexture :: SDL.Renderer -> FilePath -> IO Texture
@@ -30,6 +42,10 @@ loadGame ren gs = do
   gameState <- readIORef gs
   let listModel = M.toList $ getModelsSet gameState
   loadedModels <- loadModels listModel M.empty M.empty ren
+--  ptr (loadMaps sampleConfig)
+  --loadMaps sampleConfig
+  -- loadedMaps <- loadMaps gameState sampleConfig
+  -- loadedLevel <- loadLevelData
   writeIORef gs (gameState{ modelsSet = loadedModels })
 
 loadModels :: [(Int,RenderModel)] -> Map Int RenderModel -> Map FilePath Texture
@@ -56,3 +72,29 @@ loadModel (i, rm@(RenderModel _ pos path' tex _ instruct)) texMap ren
                              , renderInstr = instruct
                                        ++ [RenderTexture tex' pos]
                              }) , texMap')
+
+loadFile :: FilePath -> IO String
+loadFile path = do
+  initData <- readFile path
+  return (filter (\x -> x /= '\t') initData)
+
+ptr :: IO [String] -> IO ()
+ptr x = do
+  pl <- x
+  mapM_ putStrLn pl
+{-
+-- potem fmap lines
+loadMaps :: LoadConfig -> IO [String]--([TileMap TileKind])
+loadMaps (LoadConfig mPath _)
+  | not $ null mPath = do
+      lData <- loadFile mPath
+      let cleanD = fmap lines lData --fst for lvl, rest - tiles
+      return cleanD
+      --return (transformTiles [] cleanD)
+  | otherwise = return ([])
+-}
+{-
+transformTiles :: [TimeMap TileKind] -> [String]
+               -> Bool -> [TileMap]
+transformTiles (x:xs)
+-}

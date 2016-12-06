@@ -1,21 +1,25 @@
 module GameState where
 
 import Data.Map as Map
-import Render.Model
+import Render.Model (modifyModelPos, renPos
+                    , RenderModel(..), dummyModel
+                    , sampleSet)
 import Engine.Datas
---import Engine.Loader (loadModels)
+import Engine.Consts
+import Data.IORef
+import GameData
 
 data GameState = GameState
-               { lives :: Int
-               , level :: Int
-               -- , world :: World -- world entities with actors inluding renderModels
-               -- , map :: Tiles -- tiles to render WTF to tutaj?
-               , modelsSet :: Map Int RenderModel
-               }
+                 { lives :: Int
+                 , level :: Int
+                 -- , world :: World
+                 , maps :: [TileMap TileKind] -- level maps
+                 , modelsSet :: Map Int RenderModel
+                 }
 
 --rename
 getModelsSet :: GameState -> Map Int RenderModel
-getModelsSet (GameState _ _ mod) = mod
+getModelsSet (GameState _ _ _ mod) = mod
 
 getModelKey :: Int -> Map Int RenderModel-> RenderModel
 getModelKey n modMap = case Map.lookup n modMap of
@@ -25,9 +29,10 @@ getModelKey n modMap = case Map.lookup n modMap of
 modifyModelsSet :: Map Int RenderModel -> RenderModel
                 -> Int -> GameState
                 -> GameState
-modifyModelsSet modMap rm n (GameState liv lvl models) = GameState
+modifyModelsSet modMap rm n (GameState liv lvl maps' models) = GameState
                                                          { lives = liv
                                                          , level = lvl
+                                                         , maps = maps'
                                                          , modelsSet = modMap'
                                                          }
   where modMap' = Map.insert n rm modMap
@@ -36,5 +41,16 @@ modifyModelsSet modMap rm n (GameState liv lvl models) = GameState
 initStateG :: GameState
 initStateG = GameState { lives = 1
                        , level = 1
+                       , maps = []
                        , modelsSet = sampleSet
                        }
+gameLoop :: IORef EngineState -> IORef GameState -> IO ()
+gameLoop es gs = do
+  engineState <- readIORef es
+  gameState <- readIORef gs
+  let activeKeys = getKeys engineState
+      models = getModelsSet gameState
+      model = getModelKey heroKey models
+      position = modelPosition activeKeys (renPos model)
+      model' = modifyModelPos model position
+  writeIORef gs (modifyModelsSet models model' heroKey gameState)
