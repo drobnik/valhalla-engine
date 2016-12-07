@@ -15,6 +15,7 @@ import SDL (($=))
 import qualified SDL
 import System.IO
 import Data.Char
+import Engine.Consts
 
 import Paths_valhalla_engine (getDataFileName)
 
@@ -42,13 +43,14 @@ loadTexture ren path = do
 loadGame :: SDL.Renderer -> IORef GameState -> IO ()
 loadGame ren gs = do
   gameState <- readIORef gs
+  mapData <- loadLines sampleConfig
   let listModel = M.toList $ getModelsSet gameState
+      loadMaps' = loadMaps mapData []
   loadedModels <- loadModels listModel M.empty M.empty ren
-  --ptr (loadLines sampleConfig)
-  --loadMaps sampleConfig
-  -- loadedMaps <- loadMaps gameState sampleConfig
-  -- loadedLevel <- loadLevelData
-  writeIORef gs (gameState{ modelsSet = loadedModels })
+  --putStrLn (show loadMaps')
+  -- loadedWorld <- loadWorldData
+  writeIORef gs (gameState{ modelsSet = loadedModels,
+                            maps = loadMaps'})
 
 loadModels :: [(Int,RenderModel)] -> Map Int RenderModel -> Map FilePath Texture
            -> SDL.Renderer -> IO (Map Int RenderModel)
@@ -84,48 +86,56 @@ loadLines :: LoadConfig -> IO [String]
 loadLines (LoadConfig mPath _)
   | not $ null mPath = do
       lData <- loadFile mPath
-      let cleanD = lines lData --fst for lvl, rest - tiles
+      let cleanD = lines lData
       return cleanD
 
   | otherwise = return ([])
 
 --todo: load config from file
-{-loadMaps :: [String] -> [TileMap TileKind] -> [TileMap TileKind]
+loadMaps :: [String] -> [TileMap TileKind] -> [TileMap TileKind]
 loadMaps str tilesMap
   | null str = tilesMap
-  | otherwise =
--}
+  | otherwise = loadMaps str' (map':tilesMap)
+    where (map', str') = loadMap str (TileMap 0 0 [])
 
 loadMap :: [String] -> TileMap TileKind -> (TileMap TileKind, [String])
 loadMap (x:xs) map'
   | null x = (map', xs)
-  | length x /= 30 = loadMap xs (setWH x map')
+  | length x /= 30 = loadMap xs (setWH (words x) map')
   | otherwise = loadMap xs (transformTiles x 0 0 map')
+loadMap [] map' = (map', [])
 
--- trzeba tutaj miec dlugosc i szerokosc, naliczana przy kazdym
--- wywolaniu rekurencyjnym. Kontrolowac to z constami!
 transformTiles :: String -> Int -> Int -> TileMap TileKind -> TileMap TileKind
-transformTiles (x:xs) !wAcc !hAcc (TileMap w h tiles) = case x of
-  '0' -> transformTiles xs w h (TileMap w h (tile:tiles)::TileMap TileKind)
-    where (w, h, tile) = makeTile Sky wAcc hAcc
-  {-'1' -> transformTiles xs (TileMap w h (Ground:tiles))
-  '2' -> transformTiles xs (TileMap w h (Lava:tiles))
-  '3' ->transformTiles xs (TileMap w h (Spikes:tiles))-}
+transformTiles (x:xs) !wAcc !hAcc (TileMap w' h' tiles) = case x of
+  '0' -> transformTiles xs w h (TileMap w' h' (tile:tiles)::TileMap TileKind)
+    where (w, h, tile) = makeTile Sky wAcc hAcc w' h'
+
+  '1' -> transformTiles xs w h (TileMap w' h' (tile:tiles)::TileMap TileKind)
+    where (w, h, tile) = makeTile Ground wAcc hAcc w' h'
+
+  '2' -> transformTiles xs w h (TileMap w' h' (tile:tiles)::TileMap TileKind)
+    where (w, h, tile) = makeTile Lava wAcc hAcc w' h'
+
+  '3' -> transformTiles xs w h (TileMap w' h' (tile:tiles)::TileMap TileKind)
+    where (w, h, tile) = makeTile Sky wAcc hAcc w' h'
 transformTiles [] _ _ map' = map'
 
-setWH :: String -> TileMap TileKind -> TileMap TileKind
-setWH (x:y:[]) (TileMap w h tiles) = TileMap (digitToInt x) (digitToInt y) tiles
+setWH :: [String] -> TileMap TileKind -> TileMap TileKind
+setWH (x:y:z:[]) (TileMap w h tiles) = TileMap (read x) (read y) tiles
 setWH [] map' = map'
 
-makeTile :: TileKind -> Int -> Int -> (Int, Int, Tile TileKind)
-makeTile = undefined
-
-{-
-makeTile :: TileKind -> Tile TileKind
-makeTile kind' = Tile
-                { dim = tileDim
-                , pos = calcPos
-                , kind = kind'
-                , model = undefined --potem zaladowac przy ladowaniu rendermodeli
-                }
--}
+makeTile :: TileKind -> Int -> Int -> Int -> Int
+         -> (Int, Int, Tile TileKind)
+makeTile kind' width height mapW mapH
+  | width > mapW && height < mapH = (0, height + (fromIntegral tileSize)
+                                    , (Tile (tileSize, tileSize)
+                                       (0, (fromIntegral height) + tileSize)
+                                       kind' undefined))
+  | height > mapH = (width, mapH
+                    , (Tile (tileSize, tileSize)
+                        ((fromIntegral width), fromIntegral mapH)
+                       kind' undefined))
+  | otherwise = (width + (fromIntegral tileSize), height
+                , (Tile (tileSize, tileSize)
+                   (((fromIntegral width) + tileSize), fromIntegral height)
+                   kind' undefined))

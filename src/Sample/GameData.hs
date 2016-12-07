@@ -13,6 +13,7 @@ data Direction = LeftDir | RightDir | UpDir | DownDir | Unknown | End
   deriving (Show, Eq, Ord)
 
 data TileKind = Sky | Ground | Lava | Spikes
+  deriving Show
 
 data Tile a = Tile
               { dim :: (Int32, Int32)
@@ -20,16 +21,20 @@ data Tile a = Tile
               , kind :: a
               , model :: RenderModel
               }
-
-
+{- temp: debug
+instance (Show a) => Show (Tile a) where
+  show (Tile dim pos kind _) = "Tile| dimens:" ++ show dim ++ ", pos:"
+                               ++ show pos ++ ", kind:" ++ show kind ++ "\t"
+-}
 data TileMap a = TileMap
-                 { width :: Int
-                 , height :: Int
+                 { width :: Int --rename to x
+                 , height :: Int -- y
                  , tiles :: [Tile a]
                  }
 
-
-
+{-instance Show a => Show (TileMap a) where
+  show (TileMap _ _ tiles) = show tiles
+-}
 transformSet :: ActiveKeys -> (SDL.Keycode -> Direction) -> [Direction]
 transformSet keys f = Set.elems $ Set.map f keys
 
