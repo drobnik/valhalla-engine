@@ -24,6 +24,9 @@ startTime = 0.0
 heroKey :: Int
 heroKey = 3
 
+tileSize :: Int32
+tileSize = 32
+
 -- | A fixed timestep. Used to indicate if some
 -- additional updates are needed or frames need to be dropped; in milisec
 targetElapsedTime :: Double

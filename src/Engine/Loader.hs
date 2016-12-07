@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns #-}
 module Engine.Loader where
 
 import Control.Monad
@@ -13,6 +14,7 @@ import SDL.Vect
 import SDL (($=))
 import qualified SDL
 import System.IO
+import Data.Char
 
 import Paths_valhalla_engine (getDataFileName)
 
@@ -42,7 +44,7 @@ loadGame ren gs = do
   gameState <- readIORef gs
   let listModel = M.toList $ getModelsSet gameState
   loadedModels <- loadModels listModel M.empty M.empty ren
---  ptr (loadMaps sampleConfig)
+  --ptr (loadLines sampleConfig)
   --loadMaps sampleConfig
   -- loadedMaps <- loadMaps gameState sampleConfig
   -- loadedLevel <- loadLevelData
@@ -78,23 +80,52 @@ loadFile path = do
   initData <- readFile path
   return (filter (\x -> x /= '\t') initData)
 
-ptr :: IO [String] -> IO ()
-ptr x = do
-  pl <- x
-  mapM_ putStrLn pl
-{-
--- potem fmap lines
-loadMaps :: LoadConfig -> IO [String]--([TileMap TileKind])
-loadMaps (LoadConfig mPath _)
+loadLines :: LoadConfig -> IO [String]
+loadLines (LoadConfig mPath _)
   | not $ null mPath = do
       lData <- loadFile mPath
-      let cleanD = fmap lines lData --fst for lvl, rest - tiles
+      let cleanD = lines lData --fst for lvl, rest - tiles
       return cleanD
-      --return (transformTiles [] cleanD)
+
   | otherwise = return ([])
+
+--todo: load config from file
+{-loadMaps :: [String] -> [TileMap TileKind] -> [TileMap TileKind]
+loadMaps str tilesMap
+  | null str = tilesMap
+  | otherwise =
 -}
+
+loadMap :: [String] -> TileMap TileKind -> (TileMap TileKind, [String])
+loadMap (x:xs) map'
+  | null x = (map', xs)
+  | length x /= 30 = loadMap xs (setWH x map')
+  | otherwise = loadMap xs (transformTiles x 0 0 map')
+
+-- trzeba tutaj miec dlugosc i szerokosc, naliczana przy kazdym
+-- wywolaniu rekurencyjnym. Kontrolowac to z constami!
+transformTiles :: String -> Int -> Int -> TileMap TileKind -> TileMap TileKind
+transformTiles (x:xs) !wAcc !hAcc (TileMap w h tiles) = case x of
+  '0' -> transformTiles xs w h (TileMap w h (tile:tiles)::TileMap TileKind)
+    where (w, h, tile) = makeTile Sky wAcc hAcc
+  {-'1' -> transformTiles xs (TileMap w h (Ground:tiles))
+  '2' -> transformTiles xs (TileMap w h (Lava:tiles))
+  '3' ->transformTiles xs (TileMap w h (Spikes:tiles))-}
+transformTiles [] _ _ map' = map'
+
+setWH :: String -> TileMap TileKind -> TileMap TileKind
+setWH (x:y:[]) (TileMap w h tiles) = TileMap (digitToInt x) (digitToInt y) tiles
+setWH [] map' = map'
+
+makeTile :: TileKind -> Int -> Int -> (Int, Int, Tile TileKind)
+makeTile = undefined
+
 {-
-transformTiles :: [TimeMap TileKind] -> [String]
-               -> Bool -> [TileMap]
-transformTiles (x:xs)
+makeTile :: TileKind -> Tile TileKind
+makeTile kind' = Tile
+                { dim = tileDim
+                , pos = calcPos
+                , kind = kind'
+                , model = undefined --potem zaladowac przy ladowaniu rendermodeli
+                }
 -}
