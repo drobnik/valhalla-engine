@@ -47,10 +47,12 @@ loadGame ren gs = do
   let listModel = M.toList $ getModelsSet gameState
       loadMaps' = loadMaps mapData []
   loadedModels <- loadModels listModel M.empty M.empty ren
+  -- [[TileMap]]loadMaps'' <- loadMapsTex ren loadMaps' []
+  -- zaladowac teraz tekstury dla tilesow - moze mapa ma info o tym?
   --putStrLn (show loadMaps')
   -- loadedWorld <- loadWorldData
-  writeIORef gs (gameState{ modelsSet = loadedModels,
-                            maps = loadMaps'})
+  writeIORef gs (gameState{ modelsSet = loadedModels{-,
+                            maps = loadMaps''-}  })
 
 loadModels :: [(Int,RenderModel)] -> Map Int RenderModel -> Map FilePath Texture
            -> SDL.Renderer -> IO (Map Int RenderModel)
@@ -66,16 +68,16 @@ loadModel (i, rm@(RenderModel _ pos path' tex _ instruct)) texMap ren
   | path' `M.member` texMap = do
       let tex' = fromMaybe noTexture (M.lookup path' texMap)
       return ((i, rm{ texture = tex'
-                             , renderInstr = instruct --later: indicate animated RM
-                                       ++ [RenderTexture tex' pos]
-                             }) , texMap)
+                    , renderInstr = instruct --later: indicate animated RM
+                                    ++ [RenderTexture tex' pos]
+                    }) , texMap)
   | otherwise = do
       tex' <- loadTexture ren path'
       let texMap' = M.insert path' tex' texMap
       return ((i, rm{ texture = tex'
-                             , renderInstr = instruct
-                                       ++ [RenderTexture tex' pos]
-                             }) , texMap')
+                    , renderInstr = instruct
+                                    ++ [RenderTexture tex' pos]
+                    }) , texMap')
 
 loadFile :: FilePath -> IO String
 loadFile path = do
@@ -88,7 +90,6 @@ loadLines (LoadConfig mPath _)
       lData <- loadFile mPath
       let cleanD = lines lData
       return cleanD
-
   | otherwise = return ([])
 
 --todo: load config from file
@@ -96,7 +97,7 @@ loadMaps :: [String] -> [TileMap TileKind] -> [TileMap TileKind]
 loadMaps str tilesMap
   | null str = tilesMap
   | otherwise = loadMaps str' (map':tilesMap)
-    where (map', str') = loadMap str (TileMap 0 0 [])
+    where (map', str') = loadMap str (TileMap 0 0 [] tilePath)
 
 loadMap :: [String] -> TileMap TileKind -> (TileMap TileKind, [String])
 loadMap (x:xs) map'
@@ -106,22 +107,38 @@ loadMap (x:xs) map'
 loadMap [] map' = (map', [])
 
 transformTiles :: String -> Int -> Int -> TileMap TileKind -> TileMap TileKind
-transformTiles (x:xs) !wAcc !hAcc (TileMap w' h' tiles) = case x of
-  '0' -> transformTiles xs w h (TileMap w' h' (tile:tiles)::TileMap TileKind)
+transformTiles (x:xs) !wAcc !hAcc (TileMap w' h' tiles' path) = case x of
+  '0' -> transformTiles xs w h TileMap { width = w'
+                                       , height = h'
+                                       , tiles = tile:tiles'
+                                       , tilesPath = path
+                                       }
     where (w, h, tile) = makeTile Sky wAcc hAcc w' h'
 
-  '1' -> transformTiles xs w h (TileMap w' h' (tile:tiles)::TileMap TileKind)
+  '1' -> transformTiles xs w h TileMap { width = w'
+                                       , height = h'
+                                       , tiles = tile:tiles'
+                                       , tilesPath = path
+                                       }
     where (w, h, tile) = makeTile Ground wAcc hAcc w' h'
 
-  '2' -> transformTiles xs w h (TileMap w' h' (tile:tiles)::TileMap TileKind)
+  '2' -> transformTiles xs w h TileMap { width = w'
+                                       , height = h'
+                                       , tiles = tile:tiles'
+                                       , tilesPath = path
+                                       }
     where (w, h, tile) = makeTile Lava wAcc hAcc w' h'
 
-  '3' -> transformTiles xs w h (TileMap w' h' (tile:tiles)::TileMap TileKind)
+  '3' -> transformTiles xs w h TileMap { width = w'
+                                       , height = h'
+                                       , tiles = tile:tiles'
+                                       , tilesPath = path
+                                       }
     where (w, h, tile) = makeTile Sky wAcc hAcc w' h'
 transformTiles [] _ _ map' = map'
 
 setWH :: [String] -> TileMap TileKind -> TileMap TileKind
-setWH (x:y:z:[]) (TileMap w h tiles) = TileMap (read x) (read y) tiles
+setWH (x:y:z:[]) (TileMap w h tiles path) = TileMap (read x) (read y) tiles path
 setWH [] map' = map'
 
 makeTile :: TileKind -> Int -> Int -> Int -> Int
@@ -139,3 +156,26 @@ makeTile kind' width height mapW mapH
                 , (Tile (tileSize, tileSize)
                    (((fromIntegral width) + tileSize), fromIntegral height)
                    kind' undefined))
+
+loadMapsTex :: SDL.Renderer -> [TileMap TileKind]
+           -> [TileMap TileKind] -> IO [TileMap TileKind]
+loadMapsTex ren (x:xs) dist = do
+  mapTes <- mapTex ren x
+  loadMapsTex ren xs (mapTes:dist)
+loadMapsTex ren [] dist = return dist
+
+mapTex :: SDL.Renderer -> TileMap TileKind -> IO (TileMap TileKind)
+mapTex ren t@(TileMap _ _ tiles tilesPath) = do
+  mainTexture <- loadTexture ren tilesPath
+  let tiles' = createModels mainTexture tiles []
+  return (t{tiles = tiles'})
+
+createModels :: Texture -> [Tile TileKind] -> [Tile TileKind]
+             -> [Tile TileKind]
+createModels t@(Texture tex (V2 w h)) (x:xs) tiles = createModels t xs
+                                                     ((loadTile t x):tiles)
+createModels _ [] tiles = tiles
+
+loadTile :: Texture -> Tile TileKind -> Tile TileKind
+loadTile (Texture tex (V2 w h)) t@(Tile (tw, th) (x, y) kin _) = undefined
+  --t{model = (RenderModel)}

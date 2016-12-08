@@ -1,5 +1,6 @@
 module GameData where
 
+import SDL (V2 (..), Point(..), Rectangle(..))
 import qualified SDL
 import Engine.Datas
 import Engine.Consts
@@ -30,11 +31,30 @@ data TileMap a = TileMap
                  { width :: Int --rename to x
                  , height :: Int -- y
                  , tiles :: [Tile a]
+                 , tilesPath :: FilePath
                  }
 
 {-instance Show a => Show (TileMap a) where
   show (TileMap _ _ tiles) = show tiles
 -}
+
+type TileSize = V2 Int32
+type TileTexture = (TileSize, [((Rectangle Int32), TileKind)])
+
+-- temp!!
+tilePath :: FilePath
+tilePath = "example_data/tiles.bmp"
+
+tilesData :: [((Rectangle Int32), TileKind)]
+tilesData = [ ((Rectangle (P $ tile) (V2 0 0)), Sky)
+            , ((Rectangle (P $ tile) (V2 32 0)), Ground)
+            , ((Rectangle (P $ tile) (V2 64 0)), Lava)
+            , ((Rectangle (P $ tile) (V2 96 0)), Spikes)]
+  where tile = V2 tileSize tileSize
+
+tileTextureData :: TileTexture
+tileTextureData = (V2 128 32, tilesData)
+
 transformSet :: ActiveKeys -> (SDL.Keycode -> Direction) -> [Direction]
 transformSet keys f = Set.elems $ Set.map f keys
 
@@ -55,9 +75,14 @@ transDirection (x',y') (x:xs) = case x of
   _ ->  transDirection (x',y') xs
 transDirection off [] = off
 
--- TEMP
+-- TEMP SECTION
 modelPosition :: ActiveKeys -> CenterPosition -> CenterPosition
 modelPosition keys pos = calcPos pos (transDirection (0, 0)  dirs)
   where
     dirs = transformSet keys transformKeys
     calcPos (xp, yp) (x', y') = ((xp + x'), (yp + y'))
+
+-- modelsSet == map int renderModel
+-- te co sie poruszaja to niech beda jakos w osobnym zbiorze renderModeli?
+-- te statyczne zaladowac do mapy i po prostu po niej iterowac/sprawdzac
+-- czy cos jest widoczne, etc
