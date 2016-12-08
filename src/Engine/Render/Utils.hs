@@ -11,6 +11,8 @@ import Render.Model
 import GameState
 import Control.Concurrent
 
+-- wczytywanie dla pierwszego jest przesuniete!
+-- wczytalo tylko jedna linijke tekstur!
 
 initSDL :: IO ()
 initSDL = do
@@ -51,8 +53,8 @@ interpretCommand ren x = case x of
       SDL.rendererDrawColor ren $= colorF
     RenderTexture (Texture texture (V2 w h)) (x, y) ->
       SDL.copy ren texture Nothing (Just (SDL.Rectangle (P $ V2 x y) (V2 w h)))
-    RenderFrame texture sourceRec destiRect -> undefined
-
+    RenderFrame (Texture texture _) sourceRec destiRect ->
+      SDL.copy ren texture sourceRec destiRect
     RenderRotate angle -> undefined
     RenderTranslate (x, y) -> undefined
     RenderScale factor -> undefined

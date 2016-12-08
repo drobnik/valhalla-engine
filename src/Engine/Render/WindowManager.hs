@@ -28,7 +28,8 @@ instance Initializable WindowManager where
     initSDL
     window <- SDL.createWindow t
               SDL.defaultWindow{ SDL.windowInitialSize = V2 w h
-                               , SDL.windowPosition = SDL.Centered }
+                               , SDL.windowPosition = SDL.Centered
+                               , SDL.windowResizable = True}
 
     SDL.showWindow window
     renderer <- renderInit window
