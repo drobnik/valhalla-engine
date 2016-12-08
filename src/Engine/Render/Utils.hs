@@ -26,6 +26,8 @@ renderInit win = do
 renderPipeline :: SDL.Renderer -> GameState -> IO ()
 renderPipeline ren gs = do
     SDL.clear ren
+    -- add constraints on rendering unseen parts of lvl
+    mapM_ (renderModel ren) (getTilesModels gs) --map?
     mapM_ (renderModel ren) (getModelsSet gs)
     threadDelay 5000
     SDL.rendererDrawColor ren $= V4 10 10 10 255 --attention required
@@ -49,8 +51,8 @@ interpretCommand ren x = case x of
       SDL.rendererDrawColor ren $= colorF
     RenderTexture (Texture texture (V2 w h)) (x, y) ->
       SDL.copy ren texture Nothing (Just (SDL.Rectangle (P $ V2 x y) (V2 w h)))
-
     RenderFrame texture sourceRec destiRect -> undefined
+
     RenderRotate angle -> undefined
     RenderTranslate (x, y) -> undefined
     RenderScale factor -> undefined

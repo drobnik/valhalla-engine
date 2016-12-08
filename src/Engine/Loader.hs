@@ -6,14 +6,15 @@ import Data.Map (Map(..))
 import qualified Data.Map as M
 import Data.IORef
 import Data.Maybe
-import Render.Model
+import Render.Model (RenderModel(..))
+import qualified Render.Model as RM
 import Render.Primitives
 import GameState
 import GameData
 import SDL.Vect
 import SDL (($=))
 import qualified SDL
-import System.IO
+import Foreign.C.Types
 import Data.Char
 import Engine.Consts
 
@@ -47,12 +48,13 @@ loadGame ren gs = do
   let listModel = M.toList $ getModelsSet gameState
       loadMaps' = loadMaps mapData []
   loadedModels <- loadModels listModel M.empty M.empty ren
-  -- [[TileMap]]loadMaps'' <- loadMapsTex ren loadMaps' []
+  loadMaps'' <- loadMapsTex ren loadMaps' []
   -- zaladowac teraz tekstury dla tilesow - moze mapa ma info o tym?
   --putStrLn (show loadMaps')
   -- loadedWorld <- loadWorldData
-  writeIORef gs (gameState{ modelsSet = loadedModels{-,
-                            maps = loadMaps''-}  })
+  writeIORef gs (gameState{ modelsSet = loadedModels
+                          , maps = loadMaps''
+                          })
 
 loadModels :: [(Int,RenderModel)] -> Map Int RenderModel -> Map FilePath Texture
            -> SDL.Renderer -> IO (Map Int RenderModel)
@@ -177,5 +179,16 @@ createModels t@(Texture tex (V2 w h)) (x:xs) tiles = createModels t xs
 createModels _ [] tiles = tiles
 
 loadTile :: Texture -> Tile TileKind -> Tile TileKind
-loadTile (Texture tex (V2 w h)) t@(Tile (tw, th) (x, y) kin _) = undefined
-  --t{model = (RenderModel)}
+loadTile tex t@(Tile (tw, _) (x, y) kin _) =
+  t{model = RenderModel
+            { RM.dim = (d, d)
+            , RM.pos = (x', y')
+            , path = ""
+            , texture = tex
+            , modelColor = V4 0 0 0 255
+            , renderInstr = [RenderFrame tex (Just (tilesData kin)) (Just dest)]
+            }}
+  where d = CInt tw
+        x' = CInt x
+        y' = CInt y
+        dest = SDL.Rectangle (P $ V2 x' y') (V2 d d)

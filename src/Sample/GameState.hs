@@ -21,6 +21,9 @@ data GameState = GameState
 getModelsSet :: GameState -> Map Int RenderModel
 getModelsSet (GameState _ _ _ mod) = mod
 
+getTilesModels :: GameState -> [RenderModel]
+getTilesModels (GameState _ lvl maps _ ) = getModels (getTiles (maps !! lvl)) []
+
 getModelKey :: Int -> Map Int RenderModel-> RenderModel
 getModelKey n modMap = case Map.lookup n modMap of
   Just m -> m

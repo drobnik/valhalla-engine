@@ -8,6 +8,7 @@ import Data.Set as Set
 import Render.Model (modifyModelPos, renPos, RenderModel(..))
 import Render.Primitives
 import Data.Int
+import Foreign.C.Types
 
 --game specific directions + commands
 data Direction = LeftDir | RightDir | UpDir | DownDir | Unknown | End
@@ -38,6 +39,16 @@ data TileMap a = TileMap
   show (TileMap _ _ tiles) = show tiles
 -}
 
+getTiles :: TileMap TileKind -> [Tile TileKind]
+getTiles (TileMap _ _ t _) = t
+
+getModels :: [Tile TileKind]-> [RenderModel] -> [RenderModel]
+getModels (x:xs) rm = getModels xs ((renderModel x):rm)
+getModels [] rm = rm
+
+renderModel :: Tile TileKind -> RenderModel
+renderModel (Tile _ _ _ mod) = mod
+
 type TileSize = V2 Int32
 type TileTexture = (TileSize, [((Rectangle Int32), TileKind)])
 
@@ -45,15 +56,14 @@ type TileTexture = (TileSize, [((Rectangle Int32), TileKind)])
 tilePath :: FilePath
 tilePath = "example_data/tiles.bmp"
 
-tilesData :: [((Rectangle Int32), TileKind)]
-tilesData = [ ((Rectangle (P $ tile) (V2 0 0)), Sky)
-            , ((Rectangle (P $ tile) (V2 32 0)), Ground)
-            , ((Rectangle (P $ tile) (V2 64 0)), Lava)
-            , ((Rectangle (P $ tile) (V2 96 0)), Spikes)]
-  where tile = V2 tileSize tileSize
-
-tileTextureData :: TileTexture
-tileTextureData = (V2 128 32, tilesData)
+tilesData :: TileKind -> Rectangle CInt
+tilesData k = case k of
+  Sky -> (Rectangle (P $ V2 0 0)) tile
+  Ground -> (Rectangle (P $ V2 32 0)) tile
+  Lava -> (Rectangle (P $ V2 64 0)) tile
+  Spikes -> (Rectangle (P $ V2 64 0)) tile
+  where d = CInt tileSize
+        tile = V2 d d
 
 transformSet :: ActiveKeys -> (SDL.Keycode -> Direction) -> [Direction]
 transformSet keys f = Set.elems $ Set.map f keys
