@@ -50,11 +50,7 @@ loadGame ren gs = do
       loadMaps' = loadMaps mapData []
   loadedModels <- loadModels listModel M.empty M.empty ren
   loadMaps'' <- loadMapsTex ren loadMaps' []
-  -- zaladowac teraz tekstury dla tilesow - moze mapa ma info o tym?
-  --putStrLn (show loadMaps')
-  -- loadedWorld <- loadWorldData
-  --let test = gameState{ maps = loadMaps''}
-  --putStrLn $ show $ (length (getTilesModels test))
+
   writeIORef gs (gameState{ modelsSet = loadedModels
                           , maps = loadMaps''
                           })
@@ -90,7 +86,6 @@ loadFile :: FilePath -> IO String
 loadFile path = do
   p <- getDataFileName path
   initData <- readFile p
-  --D.traceIO initData
   return (filter (\x -> x /= '\t') initData)
 
 loadLines :: LoadConfig -> IO [String]
@@ -98,7 +93,6 @@ loadLines (LoadConfig mPath _)
   | not $ null mPath = do
       lData <- loadFile mPath
       let cleanD = lines lData
---      D.trace("lines"++show cleanD) (return cleanD)
       return cleanD
   | otherwise = return ([])
 
@@ -117,59 +111,45 @@ loadMap (x:xs) wAcc hAcc map'
   where (wAcc', hAcc', mapK) = transformTiles x wAcc hAcc map'
 loadMap [] _ _ map' = (map', [])
 
--- tutaj jest sporo problemow!
 transformTiles :: String -> Int -> Int -> TileMap TileKind
                -> (Int, Int, TileMap TileKind)
 transformTiles (x:xs) !wAcc !hAcc tm@(TileMap w' h' tiles' path) = case x of
-  '0' -> --D.trace ("niebo, x:" ++ [x] ++ ", xs:"++xs++"\n")
-    (transformTiles xs w h tm{tiles = tile:tiles'})
+  '0' -> transformTiles xs w h tm{tiles = tile:tiles'}
     where (w, h, tile) = (makeTile Sky wAcc hAcc w' h')
 
-  '1' -> --D.trace ("ziemio, x:" ++ [x] ++ ", xs:"++xs++"\n")
-    (transformTiles xs w h tm{tiles = tile:tiles'})
+  '1' -> transformTiles xs w h tm{tiles = tile:tiles'}
     where (w, h, tile) = makeTile Ground wAcc hAcc w' h'
 
-  '2' -> --D.trace ("lava, x:" ++ [x] ++ ", xs:"++xs++"\n")
-    (transformTiles xs w h tm{tiles = tile:tiles'})
+  '2' -> transformTiles xs w h tm{tiles = tile:tiles'}
     where (w, h, tile) = makeTile Lava wAcc hAcc w' h'
 
-  '3' -> --D.trace ("kolc, x:" ++[x]++ ", xs:"++xs++"\n")
-    (transformTiles xs w h tm{tiles = tile:tiles'})
-    where (w, h, tile) = makeTile Sky wAcc hAcc w' h'
+  '3' -> transformTiles xs w h tm{tiles = tile:tiles'}
+    where (w, h, tile) = makeTile Spikes wAcc hAcc w' h'
 transformTiles [] wAcc hAcc map' = (wAcc, hAcc, map')
 
 setWH :: [String] -> TileMap TileKind -> TileMap TileKind
 setWH (x:y:z:[]) (TileMap w h tiles path) = (TileMap (read x) (read y) tiles path)
 setWH [] map' = map'
 
---still 0 in height
 makeTile :: TileKind -> Int -> Int -> Int -> Int
          -> (Int, Int, Tile TileKind)
 makeTile kind' width height mapW mapH
-  | width <= mapW = --D.trace("mapa rosnie:"++ show width ++" "++show height++"\n")
-    ((width + tileSInt), height, (Tile (tileSize, tileSize)
-                                                 ((fromIntegral width)
-                                                 ,(fromIntegral height))
-                                                 kind' undefined))
-  | (width + tileSInt) > mapW =
-    --D.trace("kulminacja: :"++ show width ++" "++show height++"\n")
-    (0, (height + tileSInt),
-                                (Tile (tileSize, tileSize)
-                                ((fromIntegral width), (fromIntegral height))
-                                kind' undefined))
-  | width > mapW =
-    --D.trace("przesada!:"++ show width ++" "++show height++"\n")
-    (width, (height + tileSInt), (Tile (tileSize, tileSize)
-                                                ((fromIntegral width)
-                                                ,(fromIntegral height))
-                                                 kind' undefined))
+  | (width + tileSInt) >= mapW = (0, (height + tileSInt)
+                                 , (Tile (tileSize, tileSize)
+                                   ((fromIntegral width)
+                                   , fromIntegral height) kind'
+                                   undefined))
+  | otherwise = ((width + tileSInt), height, (Tile (tileSize, tileSize)
+                                              ((fromIntegral width )
+                                              ,(fromIntegral height)) kind'
+                                              undefined))
 
 loadMapsTex :: SDL.Renderer -> [TileMap TileKind]
            -> [TileMap TileKind] -> IO [TileMap TileKind]
 loadMapsTex ren (x:xs) dist = do
   mapTes <- mapTex ren x
   loadMapsTex ren xs (mapTes:dist)
-loadMapsTex ren [] dist = return dist--D.trace(show dist) (return dist)
+loadMapsTex ren [] dist = return dist
 
 mapTex :: SDL.Renderer -> TileMap TileKind -> IO (TileMap TileKind)
 mapTex ren t@(TileMap _ _ tiles tilesPath) = do

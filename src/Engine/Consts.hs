@@ -9,10 +9,10 @@ import Foreign.C.Types
 -- plenty of useful, engine specific constants
 
 viewHeight ::CInt
-viewHeight = 400
+viewHeight = 480
 
 viewWidth :: CInt
-viewWidth = 600
+viewWidth = 640
 
 posit :: CInt
 posit = 100

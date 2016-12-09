@@ -60,7 +60,7 @@ tilesData k = case k of
   Sky -> (Rectangle (P $ V2 0 0)) tile
   Ground -> (Rectangle (P $ V2 32 0)) tile
   Lava -> (Rectangle (P $ V2 64 0)) tile
-  Spikes -> (Rectangle (P $ V2 64 0)) tile
+  Spikes -> (Rectangle (P $ V2 96 0)) tile
   where d = CInt tileSize
         tile = V2 d d
 
