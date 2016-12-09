@@ -23,11 +23,10 @@ data Tile a = Tile
               , kind :: a
               , model :: RenderModel
               }
-{- temp: debug
+
 instance (Show a) => Show (Tile a) where
   show (Tile dim pos kind _) = "Tile| dimens:" ++ show dim ++ ", pos:"
-                               ++ show pos ++ ", kind:" ++ show kind ++ "\t"
--}
+                             ++ show pos ++ ", kind:" ++ show kind ++ "\t"
 data TileMap a = TileMap
                  { width :: Int --rename to x
                  , height :: Int -- y
@@ -35,9 +34,9 @@ data TileMap a = TileMap
                  , tilesPath :: FilePath
                  }
 
-{-instance Show a => Show (TileMap a) where
-  show (TileMap _ _ tiles) = show tiles
--}
+instance Show a => Show (TileMap a) where
+  show (TileMap _ _ tiles _) = show tiles
+
 
 getTiles :: TileMap TileKind -> [Tile TileKind]
 getTiles (TileMap _ _ t _) = t
@@ -91,8 +90,3 @@ modelPosition keys pos = calcPos pos (transDirection (0, 0)  dirs)
   where
     dirs = transformSet keys transformKeys
     calcPos (xp, yp) (x', y') = ((xp + x'), (yp + y'))
-
--- modelsSet == map int renderModel
--- te co sie poruszaja to niech beda jakos w osobnym zbiorze renderModeli?
--- te statyczne zaladowac do mapy i po prostu po niej iterowac/sprawdzac
--- czy cos jest widoczne, etc

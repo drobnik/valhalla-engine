@@ -17,8 +17,11 @@ data RenderModel = RenderModel
                  , texture :: Texture
                  , modelColor :: V4 Word8
                  , renderInstr :: [RenderCom]
-                 } deriving (Show, Eq, Ord)
+                 } deriving (Eq, Ord)
 
+instance Show RenderModel where
+  show (RenderModel _ (x,y) _ _ _ renderI) = "\nmodel: x:" ++ show x ++ ", y:"
+                                                 ++ show y ++ "render:" ++ show renderI
 -- for now: render with default font
 draw :: RenderModel -> [RenderCom]
 draw (RenderModel _ _ _ _ _ render) = render
