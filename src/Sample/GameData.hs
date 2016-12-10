@@ -28,8 +28,8 @@ instance (Show a) => Show (Tile a) where
   show (Tile dim pos kind _) = "Tile| dimens:" ++ show dim ++ ", pos:"
                              ++ show pos ++ ", kind:" ++ show kind ++ "\t"
 data TileMap a = TileMap
-                 { width :: Int --rename to x
-                 , height :: Int -- y
+                 { width :: Int
+                 , height :: Int
                  , tiles :: [Tile a]
                  , tilesPath :: FilePath
                  }
@@ -54,6 +54,15 @@ type TileTexture = (TileSize, [((Rectangle Int32), TileKind)])
 -- temp!!
 tilePath :: FilePath
 tilePath = "example_data/tiles.bmp"
+
+data UnitKind = CoinU | GateU | HealthUpU | PlayerU --  Enemy
+  deriving (Show, Eq, Ord)
+--lame
+unitPath :: UnitKind -> FilePath
+unitPath CoinU = "example_data/coin.bmp"
+unitPath HealthUpU = "example_data/health.bmp"
+unitPath GateU = "example_data/gate.bmp"
+unitPath PlayerU = "example_data/dot.bmp"
 
 tilesData :: TileKind -> Rectangle CInt
 tilesData k = case k of

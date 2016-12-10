@@ -8,13 +8,14 @@ import Engine.Datas
 import Engine.Consts
 import Data.IORef
 import GameData
+import qualified World as W
 
 data GameState = GameState
-                 { lives :: Int
-                 , level :: Int
-                 -- , world :: World
+                 { level :: Int
+                 , world :: W.World
                  , maps :: [TileMap TileKind] -- level maps
                  , modelsSet :: Map Int RenderModel
+                 --isOver :: Bool
                  }
 
 --rename
@@ -22,7 +23,7 @@ getModelsSet :: GameState -> Map Int RenderModel
 getModelsSet (GameState _ _ _ mod) = mod
 
 getTilesModels :: GameState -> [RenderModel]
-getTilesModels (GameState _ lvl maps _ ) = getModels (getTiles (maps !! lvl)) []
+getTilesModels (GameState lvl _ maps _ ) = getModels (getTiles (maps !! lvl)) []
 
 getModelKey :: Int -> Map Int RenderModel-> RenderModel
 getModelKey n modMap = case Map.lookup n modMap of
@@ -32,9 +33,9 @@ getModelKey n modMap = case Map.lookup n modMap of
 modifyModelsSet :: Map Int RenderModel -> RenderModel
                 -> Int -> GameState
                 -> GameState
-modifyModelsSet modMap rm n (GameState liv lvl maps' models) = GameState
-                                                         { lives = liv
-                                                         , level = lvl
+modifyModelsSet modMap rm n (GameState lvl wor maps' models) = GameState
+                                                         { level = lvl
+                                                         , world = wor
                                                          , maps = maps'
                                                          , modelsSet = modMap'
                                                          }
@@ -42,8 +43,8 @@ modifyModelsSet modMap rm n (GameState liv lvl maps' models) = GameState
 
 --later: read from json config file maybe?
 initStateG :: GameState
-initStateG = GameState { lives = 1
-                       , level = 1
+initStateG = GameState { level = 1
+                       , world = undefined
                        , maps = []
                        , modelsSet = sampleSet
                        }

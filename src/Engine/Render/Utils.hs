@@ -31,8 +31,6 @@ renderPipeline ren gs = do
     -- add constraints on rendering unseen parts of lvl
     mapM_ (renderModel ren) (getTilesModels gs)
     mapM_ (renderModel ren) (getModelsSet gs)
-    SDL.drawLine ren (P (V2 960 0)) (P (V2 960 480))
-
     threadDelay 5000
     SDL.rendererDrawColor ren $= V4 10 10 10 255 --attention required
     SDL.present ren

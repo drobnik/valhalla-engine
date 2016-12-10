@@ -11,6 +11,8 @@ import qualified Render.Model as RM
 import Render.Primitives
 import GameState
 import GameData
+import World (Entity(..), EntityType(..))
+import qualified World as W
 import SDL.Vect
 import SDL (($=))
 import qualified SDL
@@ -19,6 +21,7 @@ import Data.Char
 import Engine.Consts
 import qualified Debug.Trace as D
 import Data.Int
+import qualified Data.List.Split as S
 import Paths_valhalla_engine (getDataFileName)
 
 --later - move it to some file?
@@ -29,8 +32,9 @@ data LoadConfig = LoadConfig
 
 sampleConfig :: LoadConfig
 sampleConfig = LoadConfig { mapsPath = "example_data/levels.txt"
-                          , contentsPath = ""}
-
+                          , contentsPath = "example_data/level_1_unit.txt"
+                          --TEMP for one level only!
+                          }
 --bmp only for now
 loadTexture :: SDL.Renderer -> FilePath -> IO Texture
 loadTexture ren path = do
@@ -44,13 +48,17 @@ loadTexture ren path = do
 --load textures for every rendermodel in the map + more
 loadGame :: SDL.Renderer -> IORef GameState -> IO ()
 loadGame ren gs = do
+  let conf = sampleConfig
   gameState <- readIORef gs
-  mapData <- loadLines sampleConfig
+  mapData <- loadMapLines conf
+  unitData <- loadUnitLines conf
+  unitTexs <- loadUnitTex ren
   let listModel = M.toList $ getModelsSet gameState
       loadMaps' = loadMaps mapData []
+--      loadUnits' = loadUnits unitData ren unitTexs
   loadedModels <- loadModels listModel M.empty M.empty ren
   loadMaps'' <- loadMapsTex ren loadMaps' []
-
+  -- loadWorld for content render
   writeIORef gs (gameState{ modelsSet = loadedModels
                           , maps = loadMaps''
                           })
@@ -88,10 +96,19 @@ loadFile path = do
   initData <- readFile p
   return (filter (\x -> x /= '\t') initData)
 
-loadLines :: LoadConfig -> IO [String]
-loadLines (LoadConfig mPath _)
+loadMapLines :: LoadConfig -> IO [String]
+loadMapLines (LoadConfig mPath _)
   | not $ null mPath = do
       lData <- loadFile mPath
+      let cleanD = lines lData
+      return cleanD
+  | otherwise = return ([])
+
+--TODO one function
+loadUnitLines :: LoadConfig -> IO [String]
+loadUnitLines (LoadConfig _ cPath)
+  | not $ null cPath = do
+      lData <- loadFile cPath
       let cleanD = lines lData
       return cleanD
   | otherwise = return ([])
@@ -165,7 +182,7 @@ createModels _ [] tiles = tiles
 
 loadTile :: Texture -> Tile TileKind -> Tile TileKind
 loadTile tex t@(Tile (tw, _) (x, y) kin _) =
-  t{model = RenderModel
+  t{GameData.model = RenderModel
             { RM.dim = (d, d)
             , RM.pos = (x', y')
             , path = ""
@@ -177,3 +194,37 @@ loadTile tex t@(Tile (tw, _) (x, y) kin _) =
         x' = CInt x
         y' = CInt y
         dest = SDL.Rectangle (P $ V2 x' y') (V2 d d)
+
+loadUnits :: [String] -> SDL.Renderer -> Map UnitKind Texture
+          -> [Entity EntityType] -> [Entity EntityType]
+loadUnits (x:xs) ren texs mapEnt = do
+  loadUnits xs ren texs (x':mapEnt)
+  where x' = loadUnit (S.splitOn "\t" x) texs
+loadUnits [] _ _ mapEnt = mapEnt
+
+loadUnitTex :: SDL.Renderer -> IO (Map UnitKind Texture)
+loadUnitTex ren = do
+  coinTex <- loadTexture ren (unitPath CoinU)
+  gateTex <- loadTexture ren (unitPath GateU)
+  healthTex <- loadTexture ren (unitPath HealthUpU)
+  playerTex <- loadTexture ren (unitPath PlayerU)
+  return ((M.insert CoinU coinTex) $ (M.insert GateU gateTex)
+    $ (M.insert PlayerU playerTex) $ (M.insert HealthUpU healthTex)
+    $ M.empty)
+
+-- load dimensions from texture
+loadUnit :: [String] -> Map UnitKind Texture -> Entity EntityType
+loadUnit (x:y:z:[]) textures = case x of
+  "coin" -> Entity (w', h') 10 (y', z') Collect mod
+    where
+      texU@(Texture _ (V2 w h)) = fromMaybe (Texture undefined (V2 0 0))
+                           (getUnitTex textures CoinU)
+      y' = read y
+      z' = read z
+      w' = fromIntegral w
+      h' = fromIntegral h
+      mod = RenderModel (w,h) (CInt y', CInt z') undefined texU
+                            (V4 0 0 0 255) [RenderTexture texU (CInt y', CInt z')]
+
+getUnitTex :: Map UnitKind Texture -> UnitKind -> Maybe Texture
+getUnitTex units kind = M.lookup kind units
