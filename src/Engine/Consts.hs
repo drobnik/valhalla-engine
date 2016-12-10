@@ -1,6 +1,5 @@
 module Engine.Consts where
 
-import Graphics.Rendering.OpenGL
 import Data.Int
 import Data.Word
 import SDL.Vect

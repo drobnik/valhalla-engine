@@ -36,7 +36,6 @@ runEngine e@(Engine win eState) gs = do
   (window, renderer) <- initWin win
   loadGame renderer gs
   test <- readIORef gs
- -- putStrLn $ show (getTilesModels test)
   engineLoop gs eState window renderer
   SDL.destroyRenderer renderer
   SDL.destroyWindow window

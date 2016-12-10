@@ -11,8 +11,6 @@ import Render.Model
 import GameState
 import Control.Concurrent
 import qualified Debug.Trace as D
--- wczytywanie dla pierwszego jest przesuniete!
--- wczytalo tylko jedna linijke tekstur!
 
 initSDL :: IO ()
 initSDL = do
@@ -32,6 +30,7 @@ renderPipeline ren gs = do
     mapM_ (renderModel ren) (getTilesModels gs)
     mapM_ (renderModel ren) (getModelsSet gs)
     mapM_ (renderModel ren) (getWorldModels gs)
+    -- renderPlayer ren (getPlayer gs)
     threadDelay 5000
     SDL.rendererDrawColor ren $= V4 10 10 10 255 --attention required
     SDL.present ren

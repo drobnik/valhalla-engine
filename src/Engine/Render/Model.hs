@@ -4,11 +4,12 @@ import Render.Primitives
 import Engine.Consts
 import Foreign.C.Types
 import Data.Word
-import qualified SDL (Texture)
+import qualified SDL (Texture, Rectangle(..))
+import SDL (V2(..), Point(P))
 import SDL.Vect --constr
 import Data.Map
 
-
+type Camera = SDL.Rectangle CInt
 -- wywalic rozowy z sampla
 data RenderModel = RenderModel
                  { dim :: Dimensions
@@ -29,15 +30,21 @@ draw (RenderModel _ _ _ _ _ render) = render
 renPos :: RenderModel -> CenterPosition
 renPos (RenderModel _ pos _ _ _ _) = pos
 
-modifyModelPos :: RenderModel -> CenterPosition -> RenderModel
-modifyModelPos (RenderModel d po path' tex col rend) pos' = RenderModel
-                                                   { dim = d
-                                                   , pos = pos'
-                                                   , path = path'
-                                                   , texture = tex
-                                                   , modelColor = col
-                                                   , renderInstr = modifyPos rend [] pos'
-                                                   }
+renDim :: RenderModel -> Dimensions
+renDim (RenderModel dim _  _ _ _ _) = dim
+
+modifyModelPos :: RenderModel -> CenterPosition -> Camera -> RenderModel
+modifyModelPos (RenderModel d po path' tex col rend) pos'@(cX, cY)
+  (SDL.Rectangle (P(V2 camX camY)) _ ) = RenderModel
+                                         { dim = d
+                                         , pos = pos'
+                                         , path = path'
+                                         , texture = tex
+                                         , modelColor = col
+                                         , renderInstr =
+                                             modifyPos rend []
+                                             (cX - camX, cY - camY )
+                                         }
 
 modifyPos :: [RenderCom] -> [RenderCom] -> CenterPosition -> [RenderCom]
 modifyPos (x:xs) renAcc pos' = case x of
@@ -47,7 +54,7 @@ modifyPos [] renAcc pos' = renAcc
 
 
 sampleSet :: Map Int RenderModel
-sampleSet = insert 1 x $ insert 2 y $ insert 3 z {-$ insert 4 pi-} $ sete
+sampleSet = insert 1 x $ insert 2 y $ insert 3 z $ sete
   where x = RenderModel
             { dim = tileDim
             , pos = pos1
