@@ -25,6 +25,9 @@ getModelsSet (GameState _ _ _ mod) = mod
 getTilesModels :: GameState -> [RenderModel]
 getTilesModels (GameState lvl _ maps _ ) = getModels (getTiles (maps !! lvl)) []
 
+getWorldModels :: GameState -> [RenderModel]
+getWorldModels (GameState _ wor _ _) = W.renderWorld wor
+
 getModelKey :: Int -> Map Int RenderModel-> RenderModel
 getModelKey n modMap = case Map.lookup n modMap of
   Just m -> m

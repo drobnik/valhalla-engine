@@ -1,4 +1,3 @@
-player	0	390
 coin	80	380
 coin	96	380
 coin	272	430

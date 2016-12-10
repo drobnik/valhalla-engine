@@ -19,9 +19,10 @@ import qualified SDL
 import Foreign.C.Types
 import Data.Char
 import Engine.Consts
-import qualified Debug.Trace as D
 import Data.Int
 import qualified Data.List.Split as S
+import qualified Debug.Trace as Debug
+
 import Paths_valhalla_engine (getDataFileName)
 
 --later - move it to some file?
@@ -55,12 +56,14 @@ loadGame ren gs = do
   unitTexs <- loadUnitTex ren
   let listModel = M.toList $ getModelsSet gameState
       loadMaps' = loadMaps mapData []
---      loadUnits' = loadUnits unitData ren unitTexs
+      loadUnits' = loadUnits unitData ren unitTexs []
+      player = loadPlayer ren unitTexs
   loadedModels <- loadModels listModel M.empty M.empty ren
   loadMaps'' <- loadMapsTex ren loadMaps' []
-  -- loadWorld for content render
+
   writeIORef gs (gameState{ modelsSet = loadedModels
                           , maps = loadMaps''
+                          , world = W.setupWorld loadUnits' player
                           })
 
 loadModels :: [(Int,RenderModel)] -> Map Int RenderModel -> Map FilePath Texture
@@ -108,8 +111,9 @@ loadMapLines (LoadConfig mPath _)
 loadUnitLines :: LoadConfig -> IO [String]
 loadUnitLines (LoadConfig _ cPath)
   | not $ null cPath = do
-      lData <- loadFile cPath
-      let cleanD = lines lData
+      p <- getDataFileName cPath
+      initData <- readFile p
+      let cleanD = S.splitOn "\r" (filter (\x -> x /= '\n') initData)
       return cleanD
   | otherwise = return ([])
 
@@ -197,8 +201,9 @@ loadTile tex t@(Tile (tw, _) (x, y) kin _) =
 
 loadUnits :: [String] -> SDL.Renderer -> Map UnitKind Texture
           -> [Entity EntityType] -> [Entity EntityType]
-loadUnits (x:xs) ren texs mapEnt = do
-  loadUnits xs ren texs (x':mapEnt)
+loadUnits (x:xs) ren texs mapEnt = if not $ null x
+                                      then loadUnits xs ren texs (x':mapEnt)
+                                           else loadUnits xs ren texs mapEnt
   where x' = loadUnit (S.splitOn "\t" x) texs
 loadUnits [] _ _ mapEnt = mapEnt
 
@@ -212,19 +217,42 @@ loadUnitTex ren = do
     $ (M.insert PlayerU playerTex) $ (M.insert HealthUpU healthTex)
     $ M.empty)
 
+-- player0 390
 -- load dimensions from texture
 loadUnit :: [String] -> Map UnitKind Texture -> Entity EntityType
 loadUnit (x:y:z:[]) textures = case x of
-  "coin" -> Entity (w', h') 10 (y', z') Collect mod
-    where
-      texU@(Texture _ (V2 w h)) = fromMaybe (Texture undefined (V2 0 0))
-                           (getUnitTex textures CoinU)
-      y' = read y
-      z' = read z
-      w' = fromIntegral w
-      h' = fromIntegral h
-      mod = RenderModel (w,h) (CInt y', CInt z') undefined texU
-                            (V4 0 0 0 255) [RenderTexture texU (CInt y', CInt z')]
+  "coin" -> createUnit texC Collect 10 ((read y), (read z))
+    where texC = fromMaybe (Texture undefined (V2 0 0))
+                 (getUnitTex textures CoinU)
+
+  "gate" -> createUnit texG Gate 0 ((read y),(read z))
+    where texG = fromMaybe (Texture undefined (V2 0 0))
+                 (getUnitTex textures GateU)
+
+  "healthUp" -> createUnit texH Collect 0 ((read y), (read z))
+    where texH = fromMaybe (Texture undefined (V2 0 0))
+                 (getUnitTex textures HealthUpU)
+loadUnit _ textures = createUnit (fromMaybe (Texture undefined (V2 0 0))
+                 (getUnitTex textures CoinU)) Collect 0 (10, 10)
+
+createUnit :: Texture -> EntityType -> Int -> (Int32, Int32)
+           -> Entity EntityType
+createUnit tex@(Texture _ (V2 w h)) kind value (x, y) = Entity (w', h') value
+                                                        (x, y) kind modE
+  where
+    w' = fromIntegral w
+    h' = fromIntegral h
+    modE = RenderModel (w,h) (CInt x, CInt y) undefined tex
+          (V4 0 0 0 255) [RenderTexture tex (CInt x, CInt y)]
+
+loadPlayer :: SDL.Renderer -> Map UnitKind Texture -> W.Player
+loadPlayer ren textures = W.Player (w', h') 3 (10, 390) modP
+  where tex@(Texture _ (V2 w h)) = fromMaybe (Texture undefined (V2 0 0))
+                                   (getUnitTex textures PlayerU)
+        modP = RenderModel (w, h) (CInt 10, CInt 390) undefined tex
+               (V4 0 0 0 255) [RenderTexture tex (CInt 10, CInt 390)]
+        w' = fromIntegral w
+        h' = fromIntegral h
 
 getUnitTex :: Map UnitKind Texture -> UnitKind -> Maybe Texture
 getUnitTex units kind = M.lookup kind units
