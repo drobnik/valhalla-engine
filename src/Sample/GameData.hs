@@ -37,7 +37,6 @@ data TileMap a = TileMap
 instance Show a => Show (TileMap a) where
   show (TileMap _ _ tiles _) = show tiles
 
-
 getTiles :: TileMap TileKind -> [Tile TileKind]
 getTiles (TileMap _ _ t _) = t
 

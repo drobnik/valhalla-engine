@@ -7,8 +7,10 @@ import Render.Model (modifyModelPos, renPos
 import Engine.Datas
 import Engine.Consts
 import Data.IORef
+import Foreign.C.Types (CInt(..))
 import GameData
 import qualified World as W
+import qualified Debug.Trace as D
 
 data GameState = GameState
                  { level :: Int
@@ -44,6 +46,11 @@ modifyModelsSet modMap rm n (GameState lvl wor maps' models) = GameState
                                                          }
   where modMap' = Map.insert n rm modMap
 
+getLevelSize :: GameState -> (CInt, CInt)
+getLevelSize (GameState lvl _ maps _) =
+  let (TileMap w h tiles' tilesP) = maps !! lvl
+      in (CInt(fromIntegral w), CInt (fromIntegral h))
+
 --later: read from json config file maybe?
 initStateG :: GameState
 initStateG = GameState { level = 1
@@ -51,13 +58,17 @@ initStateG = GameState { level = 1
                        , maps = []
                        , modelsSet = sampleSet
                        }
+
 gameLoop :: IORef EngineState -> IORef GameState -> IO ()
 gameLoop es gs = do
   engineState <- readIORef es
   gameState <- readIORef gs
-  let activeKeys = getKeys engineState
+  let (GameState lvl world maps mSets) = gameState
+      activeKeys = getKeys engineState
       models = getModelsSet gameState
       model = getModelKey heroKey models
       position = modelPosition activeKeys (renPos model)
       model' = modifyModelPos model position
+      cam' = calcCameraPosition (getCamera engineState) model' (getLevelSize gameState)
   writeIORef gs (modifyModelsSet models model' heroKey gameState)
+  D.trace (show cam') (writeIORef es engineState{camera = cam'})

@@ -4,10 +4,11 @@ import Render.Primitives
 import Engine.Consts
 import Foreign.C.Types
 import Data.Word
-import qualified SDL (Texture)
+import qualified SDL (Texture, Rectangle)
 import SDL.Vect --constr
 import Data.Map
 
+type Camera = SDL.Rectangle CInt
 
 -- wywalic rozowy z sampla
 data RenderModel = RenderModel

@@ -31,7 +31,8 @@ keyboardEvents e estate
   where
     getKey e = SDL.keysymKeycode (SDL.keyboardEventKeysym e)
     keyUpdate key f = do
-      (EngineState keys' dt' ov) <- readIORef estate
+      (EngineState keys' dt' ov cam') <- readIORef estate
       let keysUpd = f key keys'
-          engine = EngineState{keys = keysUpd, dt = dt', over = ov}
+          engine = EngineState{keys = keysUpd, dt = dt', over = ov
+                              ,camera = cam'}
       writeIORef estate engine
