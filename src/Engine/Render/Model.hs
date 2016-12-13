@@ -4,9 +4,10 @@ import Render.Primitives
 import Engine.Consts
 import Foreign.C.Types
 import Data.Word
-import qualified SDL (Texture, Rectangle)
+import qualified SDL (Texture, Rectangle(..))
 import SDL.Vect --constr
 import Data.Map
+import qualified Debug.Trace as D
 
 type Camera = SDL.Rectangle CInt
 
@@ -40,9 +41,47 @@ modifyModelPos (RenderModel d po path' tex col rend) pos' = RenderModel
                                                    , renderInstr = modifyPos rend [] pos'
                                                    }
 
+checkOffset :: Camera -> Camera -> Camera
+checkOffset (SDL.Rectangle (P(V2 camX camY)) (V2 cW cH))
+  (SDL.Rectangle (P(V2 camX' camY')) _) =
+  (SDL.Rectangle (P(V2 (camX' - camX) (camY' - camY))) (V2 cW cH))
+
+calcCameraPosition :: Camera -> RenderModel -> (CInt, CInt) -> Camera
+calcCameraPosition (SDL.Rectangle (P(V2 camX camY)) (V2 cW cH))
+  (RenderModel (pWidth, pHeight) (pX, pY) _ _ _ _) (w, h) =
+  let camX' =  ((pX + (pWidth `div` 2)) - (viewWidth `div` 2))
+      camY' = (pY + (pHeight `div`2)) - (viewHeight `div` 2)
+      in SDL.Rectangle (P $ V2 (check camX' w)
+                        (check camY' h)) (V2 cW cH)
+
+check :: CInt -> CInt -> CInt
+check cam con
+  | cam < 0 = 0
+  | cam > con = con
+  | otherwise = cam
+
+addCameraOffset :: RenderModel -> Camera -> RenderModel
+addCameraOffset (RenderModel d pos'@(rX, rY) path' tex col ren)
+  (SDL.Rectangle (P(V2 camX camY)) _) = RenderModel
+                                        { dim = d
+                                        , pos = pos'
+                                        , path = path'
+                                        , texture = tex
+                                        , modelColor = col
+                                        , renderInstr =
+                                          modifyPos ren [] --pos
+                                                        ((rX - camX), (rY - camY))
+                                        }
+
+--- moze wybuchnac
 modifyPos :: [RenderCom] -> [RenderCom] -> CenterPosition -> [RenderCom]
-modifyPos (x:xs) renAcc pos' = case x of
+modifyPos (x:xs) renAcc pos'@(xp, yp) = case x of
   RenderRectangle dim pos -> renAcc ++ [(RenderRectangle dim pos')] ++ xs
+  RenderTexture tex pos -> renAcc ++ [(RenderTexture tex pos')] ++ xs
+
+  RenderFrame tex rect (Just (SDL.Rectangle (P(V2 fx fy)) dims)) ->
+                   renAcc ++ [(RenderFrame tex rect
+                               (Just (SDL.Rectangle (P(V2 xp yp)) dims)))] ++ xs
   _                       -> modifyPos xs (x:renAcc) pos'
 modifyPos [] renAcc pos' = renAcc
 

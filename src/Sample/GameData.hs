@@ -15,14 +15,14 @@ data Direction = LeftDir | RightDir | UpDir | DownDir | Unknown | End
   deriving (Show, Eq, Ord)
 
 data TileKind = Sky | Ground | Lava | Spikes
-  deriving Show
+  deriving (Show, Eq)
 
 data Tile a = Tile
               { dim :: (Int32, Int32)
               , pos :: (Int32, Int32)
               , kind :: a
               , model :: RenderModel
-              }
+              } deriving (Eq)
 
 instance (Show a) => Show (Tile a) where
   show (Tile dim pos kind _) = "Tile| dimens:" ++ show dim ++ ", pos:"

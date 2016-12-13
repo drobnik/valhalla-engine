@@ -1,5 +1,4 @@
 module Engine where
-
 -- TODO specify what to hide in these modules
 import Render.Utils
 import Render.WindowManager
@@ -19,7 +18,6 @@ import qualified Data.Map as Map
 data Engine = Engine
                 { windowManager :: WindowManager
                 , engineS :: IORef EngineState
-                 --, loader :: Loader -- opcje ladowania swiata i assetow
                 --, physics :: Physics
                 --, update :: DeltaTime -> a -> a -- zmiana stanu gry
                 }
