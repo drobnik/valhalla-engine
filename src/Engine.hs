@@ -4,6 +4,7 @@ import Render.Utils
 import Render.WindowManager
 import Engine.InputHandler
 import Engine.Datas
+import Engine.Timer
 import Engine.Loader
 import GameState --TEMP
 import GameData
@@ -33,19 +34,24 @@ runEngine :: Engine -> IORef GameState -> IO ()
 runEngine e@(Engine win eState) gs = do
   (window, renderer) <- initWin win
   loadGame renderer gs
-  test <- readIORef gs
- -- putStrLn $ show (getTilesModels test)
-  engineLoop gs eState window renderer
+  timer <- newIORef(initTimer)
+  engineLoop gs eState window renderer timer
   SDL.destroyRenderer renderer
   SDL.destroyWindow window
   SDL.quit
 
 engineLoop ::IORef GameState -> IORef EngineState
-           -> SDL.Window -> SDL.Renderer -> IO ()
-engineLoop gs es win ren = do
+           -> SDL.Window -> SDL.Renderer -> IORef Timer
+           -> IO ()
+engineLoop gs es win ren tim = do
   inputCallback es
+  timer <- readIORef tim
   gameState <- readIORef gs
-  renderPipeline ren gameState
   eState <- readIORef es
-  gameLoop es gs
-  unless (isOver eState) (engineLoop gs es win ren)
+  renderPipeline ren gameState
+  ticks <- getTicks timer
+  gameLoop es gs ((fromIntegral ticks) / 1000.0)
+
+  restartTimer <- start timer
+  writeIORef tim restartTimer
+  unless (isOver eState) (engineLoop gs es win ren tim)

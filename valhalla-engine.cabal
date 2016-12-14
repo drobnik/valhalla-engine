@@ -22,12 +22,12 @@ library
   other-modules:       Engine, Engine.InputHandler, Engine.Datas
                      , Render.WindowManager, GameState, Engine.Consts
                      , Render.Utils, Render.Primitives, Engine.Loader
-                     , Render.Model, GameData, World
+                     , Render.Model, GameData, World, Engine.Timer
                      , Paths_valhalla_engine
   exposed-modules:     GameMain
 
   build-depends:       base >= 4.7 && < 5
-                     , OpenGL, sdl2 >= 2.1.3, time, containers
+                     , OpenGL, sdl2 >= 2.1.3, containers
                      , transformers, text, split
   default-language:    Haskell2010
 

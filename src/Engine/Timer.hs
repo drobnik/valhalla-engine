@@ -1,22 +1,50 @@
 module Engine.Timer where
--- zaimportuj to tak, żeby widoczny byl jeden modul, tzn, zeby
--- hierarchia nie byla zbyt wysoka
 
-import Data.Time.Clock
+import Engine.Consts
+import qualified SDL.Time as SDL
+import Data.Word
 
-toMiliseconds :: Double -> Double
-toMiliseconds s = floor $ s * 1000
+-- for Word32 -> fromIntegral
+data Timer = Timer
+           { paused :: Bool
+           , started :: Bool
+           , ticksFromStart :: Word32
+           , ticksFromPause :: Word32
+           }
 
-getTime :: IO UTCTime
-getTime = getCurrentTime >>= return utcDayTime
+initTimer :: Timer
+initTimer = Timer False False 0 0
 
--- | Calculate difference between two clocks
--- and convert it to double; end == currentTime
-elapsedTime :: UTCTime -> UTCTime -> Double --treated as seconds
-elapsedTime start end = timeStep
-  where timeStep = fromRational $ toRational $ diffUTCTime end start
+start :: Timer -> IO Timer
+start tim = do
+  ticksStart <- SDL.ticks
+  return (Timer False True ticksStart 0)
 
-regulateTimestep :: Double -> Double
-regulateTimestep dt = case dt of
-  | dt > targetElapsedTime = msTargetElapsedTime
-  | otherwise = toMiliseconds dt
+stop :: Timer
+stop = Timer False False 0 0
+
+pause :: Timer -> IO Timer
+pause tim@(Timer paused started startT _)
+  | started && not paused = do
+      fromPause <- SDL.ticks
+      return (tim{paused = True, ticksFromStart = 0
+                 , ticksFromPause = fromPause - startT})
+  | otherwise = return tim
+
+unpause :: Timer -> IO Timer
+unpause tim@(Timer paused started _ pauseT)
+  | started && paused = do
+      fromStart <- SDL.ticks
+      return (tim{paused = False, ticksFromStart = fromStart - pauseT
+                 , ticksFromPause = 0})
+  | otherwise = return tim
+
+getTicks :: Timer -> IO Word32
+getTicks (Timer paused' started' ticksStart ticksPause)
+  | started' =
+      if paused'
+      then return ticksPause
+      else do
+        time <- SDL.ticks
+        return (time - ticksStart)
+  | otherwise = return 0

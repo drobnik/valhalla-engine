@@ -9,6 +9,7 @@ import Render.Model (modifyModelPos, renPos
                     , checkOffset)
 import qualified Render.Model as RM (pos, dim)
 import Engine.Datas
+import Engine.Timer
 import Engine.Consts
 import Data.IORef
 import Foreign.C.Types (CInt(..))
@@ -17,6 +18,7 @@ import qualified GameData as GD(dim, pos)
 import qualified World as W
 import qualified SDL (Rectangle(..))
 import SDL (Point(P), V2(..))
+import qualified SDL.Time (Timer(..))
 import qualified Debug.Trace as D
 
 data GameState = GameState
@@ -84,21 +86,19 @@ initStateG = GameState { level = 1
                        , maps = []
                        }
 
-gameLoop :: IORef EngineState -> IORef GameState -> IO ()
-gameLoop es gs = do
+gameLoop :: IORef EngineState -> IORef GameState -> Double -> IO ()
+gameLoop es gs timeStep = do
   engineState <- readIORef es
   gameState <- readIORef gs
-  let
-      activeKeys = getKeys engineState
+
+  let activeKeys = getKeys engineState
       playerMod = W.getPlayerMod $ getPlayer gameState
       position = modelPosition activeKeys (renPos playerMod)
       model' = modifyModelPos playerMod position
       cam' = calcCameraPosition (getCamera engineState) model' (getLevelSize gameState)
---      model'' = addCameraOffset model' cam'
       correctCam = checkOffset (getCamera engineState) cam'
       tileslvl = changeTilesLvl gameState correctCam
       tiles = updateMap gameState tileslvl
       world = changeWorld gameState correctCam model'
-
   writeIORef gs (modifyGameState tiles world gameState)
   writeIORef es engineState{camera = cam'}
