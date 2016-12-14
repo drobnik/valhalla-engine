@@ -49,15 +49,15 @@ checkOffset (SDL.Rectangle (P(V2 camX camY)) (V2 cW cH))
 calcCameraPosition :: Camera -> RenderModel -> (CInt, CInt) -> Camera
 calcCameraPosition (SDL.Rectangle (P(V2 camX camY)) (V2 cW cH))
   (RenderModel (pWidth, pHeight) (pX, pY) _ _ _ _) (w, h) =
-  let camX' =  ((pX + (pWidth `div` 2)) - (viewWidth `div` 2))
+  let camX' = ((pX + (pWidth `div` 2)) - (viewWidth `div` 2))
       camY' = (pY + (pHeight `div`2)) - (viewHeight `div` 2)
-      in SDL.Rectangle (P $ V2 (check camX' w)
-                        (check camY' h)) (V2 cW cH)
+      in SDL.Rectangle (P $ V2 (check camX' cW camX w)
+                        (check camY' cH camY h)) (V2 cW cH)
 
-check :: CInt -> CInt -> CInt
-check cam con
+check :: CInt -> CInt -> CInt -> CInt -> CInt
+check cam dim oldCam con
   | cam < 0 = 0
-  | cam > con = con
+  | (cam + dim) > con = oldCam
   | otherwise = cam
 
 addCameraOffset :: RenderModel -> Camera -> RenderModel

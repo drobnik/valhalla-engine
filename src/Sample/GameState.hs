@@ -35,12 +35,16 @@ getModelsSet (GameState _ _ _ mod) = mod
 getTilesModels :: GameState -> [RenderModel]
 getTilesModels (GameState lvl _ maps _ ) = getModels (getTiles (maps !! lvl)) []
 
+--change
+changeWorld :: GameState -> Camera -> W.World
+changeWorld (GameState lvl world _ _) cam = W.updateWorld world cam lvl
+
 updateMap :: GameState -> [TileMap TileKind] -> [TileMap TileKind]
 updateMap (GameState lvl _ maps _) tiles = take lvl maps ++ tiles
                                            ++ drop (lvl+1) maps
 
-changeLevel :: GameState -> Camera -> [TileMap TileKind]
-changeLevel (GameState lvl _ maps _) cam = [changeTiles cam (maps !! lvl)]
+changeTilesLvl :: GameState -> Camera -> [TileMap TileKind]
+changeTilesLvl (GameState lvl _ maps _) cam = [changeTiles cam (maps !! lvl)]
 
 changeTiles :: Camera -> TileMap TileKind -> TileMap TileKind
 changeTiles cam tileMap = map''
@@ -48,15 +52,14 @@ changeTiles cam tileMap = map''
         (TileMap w h tiles' pat) = tileMap
         map'' = TileMap w h (map (changeTile cam) tiles') pat
 
---cleanup
 changeTile :: Camera -> Tile TileKind -> Tile TileKind
 changeTile  (SDL.Rectangle (P(V2 camX camY)) _)
   (Tile d p k rm@(RenderModel _ (x, y) _ _ _ instr)) =
-   Tile { GD.dim = d, GD.pos = (x', y'), kind = k, model = rm
-                                                           { RM.pos = (CInt x', CInt y')
-                                                           , renderInstr = modifyPos
-                                                             instr [] (CInt x', CInt y')
-                                                           }}
+   Tile { GD.dim = d, GD.pos = p, kind = k, model = rm
+                                                    { RM.pos = (CInt x', CInt y')
+                                                    , renderInstr = modifyPos
+                                                      instr [] (CInt x', CInt y')
+                                                    }}
   where (x', y') = (fromIntegral (x - camX), fromIntegral (y - camY))
 
 getWorldModels :: GameState -> [RenderModel]
@@ -67,11 +70,11 @@ getModelKey n modMap = case Map.lookup n modMap of
   Just m -> m
   Nothing -> dummyModel
 
-modifyModelsSet :: Map Int RenderModel -> RenderModel
-                -> Int -> [TileMap TileKind] -> GameState
-                -> GameState
-modifyModelsSet modMap rm n tileCam (GameState lvl wor maps' models) =
-  GameState{ level = lvl, world = wor, maps = tileCam, modelsSet = modMap'}
+modifyGameState :: Map Int RenderModel -> RenderModel
+                -> Int -> [TileMap TileKind] -> W.World
+                -> GameState -> GameState
+modifyGameState modMap rm n tileCam wor' (GameState lvl _  _  models) =
+  GameState{ level = lvl, world = wor', maps = tileCam, modelsSet = modMap'}
   where modMap' = Map.insert n rm modMap
 
 getLevelSize :: GameState -> (CInt, CInt)
@@ -104,10 +107,12 @@ gameLoop es gs = do
       model' = modifyModelPos model position
       cam' = calcCameraPosition (getCamera engineState) model' (getLevelSize gameState)
       model'' = addCameraOffset model' cam'
-      level = changeLevel gameState (checkOffset (getCamera engineState) cam')
-      tiles = updateMap gameState level
+      correctCam = checkOffset (getCamera engineState) cam'
+      tileslvl = changeTilesLvl gameState correctCam
+      tiles = updateMap gameState tileslvl
+      world = changeWorld gameState correctCam
 
-  writeIORef gs (modifyModelsSet models model' heroKey tiles gameState)
+  writeIORef gs (modifyGameState models model' heroKey tiles world gameState)
 --  D.traceIO (show model'')
  -- D.traceIO ("to drugie:" ++ show model')
   writeIORef es engineState{camera = cam'}

@@ -2,12 +2,17 @@ module World where
 
 import Data.Int
 import Data.Map (Map(..), fromList, elems)
-import Render.Model (RenderModel (..))
+import qualified Data.Map as M (map)
+import Foreign.C.Types(CInt(..))
+import SDL(V2(..), Point(P))
+import qualified SDL (Rectangle(..))
+import Render.Model (RenderModel (..), modifyPos, Camera(..))
+import qualified Render.Model as RM (pos)
 import Engine.Datas
 import Engine.Consts
 import GameData
 
-
+import qualified Debug.Trace as D
 data World = World
            { level :: [Level]
            , playerLives :: Int
@@ -16,6 +21,7 @@ data World = World
            }
 
 data EntityType = Collect | Gate
+  deriving Show
 
 data Player = Player
             { pDim :: (Int32, Int32)
@@ -25,19 +31,22 @@ data Player = Player
             }
 
 data Level = Level
-           { collectables :: Map Int (Entity EntityType)
-           , score :: Int
-           , scoreToEnd :: Int
-           , isGateOpen :: Bool
-           }
+             { collectables :: Map Int (Entity EntityType)
+             , score :: Int
+             , scoreToEnd :: Int
+             , isGateOpen :: Bool
+             }
+
+instance Show Level where
+  show (Level col _ _ _) = show (elems col)
 
 data Entity a = Entity
-              { dim :: (Int32, Int32)
-              , value :: Int
-              , pos :: (Int32, Int32)
-              , kind :: a
-              , model :: RenderModel
-              }
+                { dim :: (Int32, Int32)
+                , value :: Int
+                , pos :: (Int32, Int32)
+                , kind :: a
+                , model :: RenderModel
+                } deriving Show
 
 setupWorld :: [Entity EntityType] -> Player -> World
 setupWorld entities p = World
@@ -68,5 +77,46 @@ getLvlModels (Level cosMap _ _ _) = map getRenders (elems cosMap)
 
 getRenders :: Entity EntityType -> RenderModel
 getRenders (Entity _ _ _ _ mod) = mod
+
+-- add update for player
+updateWorld :: World -> Camera -> Int -> World
+updateWorld (World lvls liv p scr) cam num = (World lvls' liv p scr)
+  where
+    updated = changeLevel lvls cam num
+    lvls' = updateLevels lvls updated num
+
+-- wina tego dziela
+updateLevels :: [Level] -> [Level] -> Int -> [Level]
+updateLevels lvlmaps upLvl num = take (num-1) lvlmaps ++ upLvl
+                                 ++ drop (num+1) lvlmaps
+
+-- tutaj sie wywala!
+changeLevel :: [Level] -> Camera -> Int -> [Level]
+changeLevel level cam lvl = [changeUnits cam (level !! (lvl - 1))]
+
+changeUnits :: Camera -> Level -> Level
+changeUnits cam (Level coll se' toEnd isOpen) = Level{ collectables =
+                                                          (modifyEntities
+                                                           cam coll)
+                                                        , score = se'
+                                                        , scoreToEnd = toEnd
+                                                        , isGateOpen = isOpen
+                                                        }
+
+modifyEntities :: Camera -> Map Int (Entity EntityType)
+               -> Map Int (Entity EntityType)
+modifyEntities cam collectables = M.map (changeEnt cam) collectables
+
+changeEnt :: Camera -> Entity EntityType -> Entity EntityType
+changeEnt (SDL.Rectangle (P(V2 camX camY)) s) (Entity d val p k
+                                             rm@(RenderModel _ (x, y) _
+                                                 _ _ instr)) =
+  Entity {World.dim = d, value = val, World.pos = p,
+       World.kind = k, World.model = rm{ RM.pos = (CInt x', CInt y')
+                             , renderInstr = modifyPos
+                                             instr [] (CInt x', CInt y')
+                             }}
+  where (x', y') = (fromIntegral (x - camX), fromIntegral (y - camY))
+
 
 runWorld = undefined
