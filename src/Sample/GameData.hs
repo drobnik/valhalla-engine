@@ -83,18 +83,23 @@ transformKeys (SDL.KeycodeDown)  = DownDir
 transformKeys (SDL.KeycodeEscape) = End
 transformKeys _ = Unknown
 
-transDirection :: PixOff -> [Direction] -> PixOff
-transDirection (x',y') (x:xs) = case x of
-  LeftDir -> transDirection ((x' - un),y') xs
-  RightDir -> transDirection ((x' + un),y') xs
-  UpDir -> transDirection (x',(y' - un)) xs
-  DownDir -> transDirection (x',(y' + un)) xs
-  _ ->  transDirection (x',y') xs
-transDirection off [] = off
+transDirection :: (Double, Double) -> [Direction] -> Double -> (CInt, CInt)
+transDirection (x',y') (x:xs) dt = case x of
+  LeftDir -> transDirection ((x' - pVelo*dt), y') xs dt
+  RightDir -> transDirection ((x' + pVelo*dt), y') xs dt
+  UpDir -> transDirection (x', (y' - pVelo*dt)) xs dt
+  DownDir -> transDirection (x', (y' + pVelo*dt)) xs dt
+  _ ->  transDirection (x',y') xs dt
+transDirection (x, y) [] _ = (CInt(floor x), CInt (floor y))
 
 -- TEMP SECTION
-modelPosition :: ActiveKeys -> CenterPosition -> CenterPosition
-modelPosition keys pos = calcPos pos (transDirection (0, 0)  dirs)
+modelPosition :: ActiveKeys -> CenterPosition -> Double -> (Int, Int)
+              -> CenterPosition
+modelPosition keys pos dt (lw, lh) = calcPos pos (transDirection (0.0, 0.0) dirs dt)
   where
     dirs = transformSet keys transformKeys
-    calcPos (xp, yp) (x', y') = ((xp + x'), (yp + y'))
+    check po con
+      | po > con = con
+      | otherwise = po
+    calcPos (xp, yp) (x', y') = ((check (xp + x') (fromIntegral lw)) --to transDirection
+                                ,(check (yp + y') (fromIntegral lh)))

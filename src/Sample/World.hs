@@ -26,7 +26,7 @@ data EntityType = Collect | Gate
 data Player = Player
             { pDim :: (Int32, Int32)
             , lives :: Int
-            , pPos :: (Int32, Int32)
+            , pPos :: (Double, Double)
             , heroM :: RenderModel
             }
 

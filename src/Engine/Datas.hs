@@ -11,7 +11,6 @@ import Engine.Consts
 -- datas and types used in this engine
 
 type ActiveKeys = Set SDL.Keycode
-type PixOff = (CInt, CInt) -- x ; y
 
 data EngineState = EngineState
                  { keys :: ActiveKeys

@@ -64,6 +64,10 @@ getWorldModels (GameState _ wor _) = W.renderWorld wor
 getPlayer :: GameState -> W.Player
 getPlayer (GameState _ (W.World _ _ p _) _) = p
 
+levelInfo :: GameState -> (Int, Int)
+levelInfo (GameState lvl _ maps) = (w, h)
+  where (TileMap w h _ _) = maps !! lvl
+
 getModelKey :: Int -> Map Int RenderModel-> RenderModel
 getModelKey n modMap = case Map.lookup n modMap of
   Just m -> m
@@ -90,10 +94,11 @@ gameLoop :: IORef EngineState -> IORef GameState -> Double -> IO ()
 gameLoop es gs timeStep = do
   engineState <- readIORef es
   gameState <- readIORef gs
-
+--  D.traceIO (show timeStep)
   let activeKeys = getKeys engineState
       playerMod = W.getPlayerMod $ getPlayer gameState
-      position = modelPosition activeKeys (renPos playerMod)
+      levelDims = levelInfo gameState
+      position = modelPosition activeKeys (renPos playerMod) timeStep levelDims
       model' = modifyModelPos playerMod position
       cam' = calcCameraPosition (getCamera engineState) model' (getLevelSize gameState)
       correctCam = checkOffset (getCamera engineState) cam'

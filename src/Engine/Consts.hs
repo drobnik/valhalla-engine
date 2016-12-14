@@ -20,18 +20,16 @@ posit = 100
 startTime :: Double
 startTime = 0.0
 
---TEMP
-heroKey :: Int
-heroKey = 3
-
 tileSize :: Int32
 tileSize = 32
 
 tileSInt :: Int
 tileSInt = fromIntegral tileSize
 
--- | A fixed timestep. Used to indicate if some
--- additional updates are needed or frames need to be dropped; in milisec
+pVelo :: Double
+pVelo = 740
+
+-- | A fixed timestep.
 targetElapsedTime :: Double
 targetElapsedTime = 0.01666
 
