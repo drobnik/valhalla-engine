@@ -85,45 +85,6 @@ modifyPos (x:xs) renAcc pos'@(xp, yp) = case x of
   _                       -> modifyPos xs (x:renAcc) pos'
 modifyPos [] renAcc pos' = renAcc
 
-
-sampleSet :: Map Int RenderModel
-sampleSet = insert 1 x $ insert 2 y $ insert 3 z {-$ insert 4 pi-} $ sete
-  where x = RenderModel
-            { dim = tileDim
-            , pos = pos1
-            , path = []
-            , texture = undefined
-            , modelColor = col1
-            , renderInstr = sampleInstr tileDim pos1 col1
-            }
-        y = RenderModel
-            { dim = tileDim
-            , pos = pos2
-            , path = []
-            , texture = undefined
-            , modelColor = col2
-            , renderInstr = sampleInstr tileDim pos2 col2
-            }
-        z = RenderModel
-            { dim = tileDim
-            , pos = pos3
-            , path = []
-            , texture = undefined
-            , modelColor = col3
-            , renderInstr = sampleInstr tileDim pos3 (V4 0 10 100 255)
-            }
-        pi = RenderModel
-             { dim = (128, 32)
-             , pos = (200, 50)
-             , path = "example_data/tiles.bmp"
-             , texture = noTexture
-             , modelColor = col2
-             , renderInstr = []
-             }
-        sete = empty
-
-
--- TEMP
 sampleInstr :: Dimensions -> CenterPosition -> V4 Word8 -> [RenderCom]
 sampleInstr dim pos color = [RenderColor color, (RenderRectangle dim pos)]
 

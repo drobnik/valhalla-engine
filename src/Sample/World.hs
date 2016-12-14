@@ -16,7 +16,7 @@ import qualified Debug.Trace as D
 data World = World
            { level :: [Level]
            , playerLives :: Int
-           , player :: Player
+           , player :: Player --play
            , wholeScore :: Int
            }
 
@@ -78,12 +78,20 @@ getLvlModels (Level cosMap _ _ _) = map getRenders (elems cosMap)
 getRenders :: Entity EntityType -> RenderModel
 getRenders (Entity _ _ _ _ mod) = mod
 
+getPlayerMod :: Player -> RenderModel
+getPlayerMod (Player _ _ _ rm) = rm
+
+updatePlayer :: Player -> RenderModel -> Player
+updatePlayer old rm@(RenderModel _ (x, y) _  _ _ _) = old{pPos = po', heroM = rm}
+  where po' = (fromIntegral x, fromIntegral y)
+
 -- add update for player
-updateWorld :: World -> Camera -> Int -> World
-updateWorld (World lvls liv p scr) cam num = (World lvls' liv p scr)
+updateWorld :: World -> Camera -> RenderModel -> Int -> World
+updateWorld (World lvls liv p scr) cam pModel num = (World lvls' liv pi scr)
   where
     updated = changeLevel lvls cam num
     lvls' = updateLevels lvls updated num
+    pi = updatePlayer p pModel
 
 -- wina tego dziela
 updateLevels :: [Level] -> [Level] -> Int -> [Level]
