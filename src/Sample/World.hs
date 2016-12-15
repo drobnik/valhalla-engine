@@ -27,7 +27,7 @@ data Player = Player
             { pDim :: (Int32, Int32)
             , lives :: Int
             , pPos :: (Double, Double)
---            , pBox :: BoundingBox
+            , pBox :: BoundingBox
             , heroM :: RenderModel
             }
 
@@ -66,7 +66,8 @@ sampleLevel entities = Level
                        }
 
 renderWorld :: World -> [RenderModel]
-renderWorld (World levels' _ (Player _ _ _ hero) _) = renderLevels levels' [hero]
+renderWorld (World levels' _ player' _) = renderLevels levels'
+                                                      [heroM player']
 
 renderLevels :: [Level] -> [RenderModel] -> [RenderModel]
 renderLevels (x:xs) models = renderLevels xs (mod ++ models)
@@ -76,17 +77,17 @@ renderLevels [] models = models
 getLvlModels :: Level -> [RenderModel]
 getLvlModels (Level cosMap _ _ _) = map World.model (elems cosMap)
 
-updatePlayer :: Player -> RenderModel -> Player
-updatePlayer old rm@(RenderModel _ (x, y) _  _ _ _) = old{pPos = po', heroM = rm}
-  where po' = (fromIntegral x, fromIntegral y)
+updatePlayer :: Player -> RenderModel -> (Double, Double) -> Player
+updatePlayer old rm po = old{pPos = po, heroM = rm}
 
 -- add update for player
-updateWorld :: World -> Camera -> RenderModel -> Int -> World
-updateWorld (World lvls liv p scr) cam pModel num = (World lvls' liv pi scr)
+updateWorld :: World -> Camera -> RenderModel -> (CInt, CInt) -> Int
+            -> World
+updateWorld (World lvls liv p scr) cam pModel (xp, yp) num = (World lvls' liv pi scr)
   where
     updated = changeLevel lvls cam num
     lvls' = updateLevels lvls updated num
-    pi = updatePlayer p pModel
+    pi = updatePlayer p pModel (fromIntegral xp, fromIntegral yp)
 
 -- wina tego dziela
 updateLevels :: [Level] -> [Level] -> Int -> [Level]

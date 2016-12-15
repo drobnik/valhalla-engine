@@ -85,7 +85,7 @@ transformKeys (SDL.KeycodeDown)  = DownDir
 transformKeys (SDL.KeycodeEscape) = End
 transformKeys _ = Unknown
 
-transDirection :: (Double, Double) -> [Direction] -> Double -> (CInt, CInt)
+transDirection :: (Double, Double) -> [Direction] -> Double -> CenterPosition
 transDirection (x',y') (x:xs) dt  = case x of
   LeftDir -> transDirection ((x' - pVelo*dt), y') xs dt
   RightDir -> transDirection ((x' + pVelo*dt), y') xs dt
@@ -96,7 +96,7 @@ transDirection (x, y) [] _ = (CInt(floor x), CInt (floor y))
 
 -- TEMP SECTION
 modelPosition :: ActiveKeys -> CenterPosition -> Double -> CenterPosition
-modelPosition keys pos dt = calcPos pos (transDirection (0.0, 0.0) dirs dt)
+modelPosition keys (u,i) dt = calcPos (u, i) (transDirection (0.0, 0.0) dirs dt)
   where
     dirs = transformSet keys transformKeys
     calcPos (xp, yp) (x', y') = ((xp + x'), (yp + y'))

@@ -27,8 +27,8 @@ data EngineState = EngineState
                  , camera :: Camera
                  }
 
-makeBox :: Int -> Int -> Int32 -> BoundingBox --temp 1 arg
-makeBox x y s = BoundingBox (x', y') ((x' + s), (y' + s))
+makeBox :: Int -> Int -> Int32 -> Int32 -> BoundingBox --temp 1 arg
+makeBox x y w h = BoundingBox (x', y') ((x' + w), (y' + h))
   where x' = fromIntegral x
         y' = fromIntegral y
 

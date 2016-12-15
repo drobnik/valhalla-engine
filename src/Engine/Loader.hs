@@ -151,12 +151,14 @@ makeTile kind' width height mapW mapH
                                    ((fromIntegral width)
                                    , fromIntegral height) kind'
                                    undefined) (makeBox 0
-                                               (height + tileSInt) tileSize))
+                                               (height + tileSInt)
+                                               tileSize tileSize))
   | otherwise = ((width + tileSInt), height, (Tile (tileSize, tileSize)
                                               ((fromIntegral width )
                                               ,(fromIntegral height)) kind'
                                               undefined) (makeBox (width + tileSInt)
-                                                         height tileSize))
+                                                         height
+                                                         tileSize tileSize))
 
 loadMapsTex :: SDL.Renderer -> [TileMap TileKind]
            -> [TileMap TileKind] -> IO [TileMap TileKind]
@@ -239,7 +241,7 @@ createUnit tex@(Texture _ (V2 w h)) kind value (x, y) = Entity (w', h') value
           (V4 0 0 0 255) [RenderTexture tex (CInt x, CInt y)]
 
 loadPlayer :: SDL.Renderer -> Map UnitKind Texture -> W.Player
-loadPlayer ren textures = W.Player (w', h') 3 (10, 390) modP
+loadPlayer ren textures = W.Player (w', h') 3 (10, 390) (makeBox 10 390 w' h') modP
   where tex@(Texture _ (V2 w h)) = fromMaybe (Texture undefined (V2 0 0))
                                    (getUnitTex textures PlayerU)
         modP = RenderModel (w, h) (CInt 10, CInt 390) undefined tex
