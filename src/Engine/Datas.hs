@@ -12,6 +12,14 @@ import Engine.Consts
 
 type ActiveKeys = Set SDL.Keycode
 
+class Collidable a where
+  boundingBox :: a -> BoundingBox
+
+data BoundingBox = BoundingBox
+                 { topLeftA :: (Int32, Int32)
+                 , bottomRightB :: (Int32, Int32)
+                 } deriving Eq
+
 data EngineState = EngineState
                  { keys :: ActiveKeys
                  , dt :: Double -- last delta time
@@ -19,11 +27,10 @@ data EngineState = EngineState
                  , camera :: Camera
                  }
 
-getKeys :: EngineState -> ActiveKeys
-getKeys (EngineState keys _ _ _) = keys
-
-getCamera :: EngineState -> Camera
-getCamera (EngineState _ _ _ cam) = cam
+makeBox :: Int -> Int -> Int32 -> BoundingBox --temp 1 arg
+makeBox x y s = BoundingBox (x', y') ((x' + s), (y' + s))
+  where x' = fromIntegral x
+        y' = fromIntegral y
 
 closeGame :: IORef EngineState -> IO ()
 closeGame es = do

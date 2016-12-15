@@ -28,7 +28,7 @@ data GameState = GameState
                  }
 
 getTilesModels :: GameState -> [RenderModel]
-getTilesModels (GameState lvl _ maps) = getModels (getTiles (maps !! lvl)) []
+getTilesModels (GameState lvl _ maps) = getModels (tiles (maps !! lvl)) []
 
 --change
 changeWorld :: GameState -> Camera -> RenderModel -> W.World
@@ -50,19 +50,19 @@ changeTiles cam tileMap = map''
 
 changeTile :: Camera -> Tile TileKind -> Tile TileKind
 changeTile  (SDL.Rectangle (P(V2 camX camY)) _)
-  (Tile d p k rm@(RenderModel _ (x, y) _ _ _ instr)) =
+  (Tile d p k rm@(RenderModel _ (x, y) _ _ _ instr) box) =
    Tile { GD.dim = d, GD.pos = p, kind = k, model = rm
                                                     { RM.pos = (CInt x', CInt y')
                                                     , renderInstr = modifyPos
                                                       instr [] (CInt x', CInt y')
-                                                    }}
+                                                    }, tBox = box}
   where (x', y') = (fromIntegral (x - camX), fromIntegral (y - camY))
 
 getWorldModels :: GameState -> [RenderModel]
 getWorldModels (GameState _ wor _) = W.renderWorld wor
 
 getPlayer :: GameState -> W.Player
-getPlayer (GameState _ (W.World _ _ p _) _) = p
+getPlayer (GameState _ world _) = W.player world
 
 levelInfo :: GameState -> (Int, Int)
 levelInfo (GameState lvl _ maps) = (w, h)
@@ -95,15 +95,16 @@ gameLoop es gs timeStep = do
   engineState <- readIORef es
   gameState <- readIORef gs
 
-  let activeKeys = getKeys engineState
-      playerMod = W.getPlayerMod $ getPlayer gameState
+  let activeKeys = keys engineState
+      playerMod = W.heroM $ getPlayer gameState
       levelDims = levelInfo gameState
       position = modelPosition activeKeys (renPos playerMod) timeStep
+ -- check for collisions? + react
       model' = modifyModelPos playerMod position levelDims
-               (getCamera engineState)
-      cam' = calcCameraPosition (getCamera engineState) model'
+               (camera engineState)
+      cam' = calcCameraPosition (camera engineState) model'
              (getLevelSize gameState)
-      correctCam = checkOffset (getCamera engineState) cam'
+      correctCam = checkOffset (camera engineState) cam'
       tileslvl = changeTilesLvl gameState correctCam
       tiles = updateMap gameState tileslvl
       world = changeWorld gameState correctCam model'

@@ -27,6 +27,7 @@ data Player = Player
             { pDim :: (Int32, Int32)
             , lives :: Int
             , pPos :: (Double, Double)
+--            , pBox :: BoundingBox
             , heroM :: RenderModel
             }
 
@@ -73,13 +74,7 @@ renderLevels (x:xs) models = renderLevels xs (mod ++ models)
 renderLevels [] models = models
 
 getLvlModels :: Level -> [RenderModel]
-getLvlModels (Level cosMap _ _ _) = map getRenders (elems cosMap)
-
-getRenders :: Entity EntityType -> RenderModel
-getRenders (Entity _ _ _ _ mod) = mod
-
-getPlayerMod :: Player -> RenderModel
-getPlayerMod (Player _ _ _ rm) = rm
+getLvlModels (Level cosMap _ _ _) = map World.model (elems cosMap)
 
 updatePlayer :: Player -> RenderModel -> Player
 updatePlayer old rm@(RenderModel _ (x, y) _  _ _ _) = old{pPos = po', heroM = rm}

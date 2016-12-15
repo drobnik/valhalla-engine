@@ -23,10 +23,14 @@ data Tile a = Tile
               , pos :: (Int32, Int32)
               , kind :: a
               , model :: RenderModel
+              , tBox :: BoundingBox
               } deriving (Eq)
 
+instance Collidable (Tile a) where
+  boundingBox = tBox
+
 instance (Show a) => Show (Tile a) where
-  show (Tile dim pos kind _) = "Tile| dimens:" ++ show dim ++ ", pos:"
+  show (Tile dim pos kind _ _) = "Tile| dimens:" ++ show dim ++ ", pos:"
                              ++ show pos ++ ", kind:" ++ show kind ++ "\t"
 data TileMap a = TileMap
                  { width :: Int
@@ -36,17 +40,14 @@ data TileMap a = TileMap
                  }
 
 instance Show a => Show (TileMap a) where
-  show (TileMap _ _ tiles _) = show tiles
-
-getTiles :: TileMap TileKind -> [Tile TileKind]
-getTiles (TileMap _ _ t _) = t
+  show (TileMap _ _ tiles _ ) = show tiles
 
 getModels :: [Tile TileKind]-> [RenderModel] -> [RenderModel]
 getModels (x:xs) rm = getModels xs ((renderModel x):rm)
 getModels [] rm = rm
 
 renderModel :: Tile TileKind -> RenderModel
-renderModel (Tile _ _ _ mod) = mod
+renderModel (Tile _ _ _ mod _) = mod
 
 type TileSize = V2 Int32
 type TileTexture = (TileSize, [((Rectangle Int32), TileKind)])

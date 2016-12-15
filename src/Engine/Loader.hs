@@ -11,6 +11,7 @@ import qualified Render.Model as RM
 import Render.Primitives
 import GameState
 import GameData
+import Engine.Datas
 import World (Entity(..), EntityType(..))
 import qualified World as W
 import SDL.Vect
@@ -149,11 +150,13 @@ makeTile kind' width height mapW mapH
                                  , (Tile (tileSize, tileSize)
                                    ((fromIntegral width)
                                    , fromIntegral height) kind'
-                                   undefined))
+                                   undefined) (makeBox 0
+                                               (height + tileSInt) tileSize))
   | otherwise = ((width + tileSInt), height, (Tile (tileSize, tileSize)
                                               ((fromIntegral width )
                                               ,(fromIntegral height)) kind'
-                                              undefined))
+                                              undefined) (makeBox (width + tileSInt)
+                                                         height tileSize))
 
 loadMapsTex :: SDL.Renderer -> [TileMap TileKind]
            -> [TileMap TileKind] -> IO [TileMap TileKind]
@@ -175,7 +178,7 @@ createModels t@(Texture tex (V2 w h)) (x:xs) tiles = createModels t xs
 createModels _ [] tiles = tiles
 
 loadTile :: Texture -> Tile TileKind -> Tile TileKind
-loadTile tex t@(Tile (tw, _) (x, y) kin _) =
+loadTile tex t@(Tile (tw, _) (x, y) kin _ _) =
   t{GameData.model = RenderModel
             { RM.dim = (d, d)
             , RM.pos = (x', y')
