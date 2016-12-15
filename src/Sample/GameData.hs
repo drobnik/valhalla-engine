@@ -10,6 +10,7 @@ import Render.Primitives
 import Data.Int
 import Foreign.C.Types
 
+import qualified Debug.Trace as D
 --game specific directions + commands
 data Direction = LeftDir | RightDir | UpDir | DownDir | Unknown | End
   deriving (Show, Eq, Ord)
@@ -84,7 +85,7 @@ transformKeys (SDL.KeycodeEscape) = End
 transformKeys _ = Unknown
 
 transDirection :: (Double, Double) -> [Direction] -> Double -> (CInt, CInt)
-transDirection (x',y') (x:xs) dt = case x of
+transDirection (x',y') (x:xs) dt  = case x of
   LeftDir -> transDirection ((x' - pVelo*dt), y') xs dt
   RightDir -> transDirection ((x' + pVelo*dt), y') xs dt
   UpDir -> transDirection (x', (y' - pVelo*dt)) xs dt
@@ -93,13 +94,8 @@ transDirection (x',y') (x:xs) dt = case x of
 transDirection (x, y) [] _ = (CInt(floor x), CInt (floor y))
 
 -- TEMP SECTION
-modelPosition :: ActiveKeys -> CenterPosition -> Double -> (Int, Int)
-              -> CenterPosition
-modelPosition keys pos dt (lw, lh) = calcPos pos (transDirection (0.0, 0.0) dirs dt)
+modelPosition :: ActiveKeys -> CenterPosition -> Double -> CenterPosition
+modelPosition keys pos dt = calcPos pos (transDirection (0.0, 0.0) dirs dt)
   where
     dirs = transformSet keys transformKeys
-    check po con
-      | po > con = con
-      | otherwise = po
-    calcPos (xp, yp) (x', y') = ((check (xp + x') (fromIntegral lw)) --to transDirection
-                                ,(check (yp + y') (fromIntegral lh)))
+    calcPos (xp, yp) (x', y') = ((xp + x'), (yp + y'))

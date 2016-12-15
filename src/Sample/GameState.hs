@@ -94,13 +94,15 @@ gameLoop :: IORef EngineState -> IORef GameState -> Double -> IO ()
 gameLoop es gs timeStep = do
   engineState <- readIORef es
   gameState <- readIORef gs
---  D.traceIO (show timeStep)
+
   let activeKeys = getKeys engineState
       playerMod = W.getPlayerMod $ getPlayer gameState
       levelDims = levelInfo gameState
-      position = modelPosition activeKeys (renPos playerMod) timeStep levelDims
-      model' = modifyModelPos playerMod position
-      cam' = calcCameraPosition (getCamera engineState) model' (getLevelSize gameState)
+      position = modelPosition activeKeys (renPos playerMod) timeStep
+      model' = modifyModelPos playerMod position levelDims
+               (getCamera engineState)
+      cam' = calcCameraPosition (getCamera engineState) model'
+             (getLevelSize gameState)
       correctCam = checkOffset (getCamera engineState) cam'
       tileslvl = changeTilesLvl gameState correctCam
       tiles = updateMap gameState tileslvl

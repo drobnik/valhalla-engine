@@ -31,15 +31,22 @@ draw (RenderModel _ _ _ _ _ render) = render
 renPos :: RenderModel -> CenterPosition
 renPos (RenderModel _ pos _ _ _ _) = pos
 
-modifyModelPos :: RenderModel -> CenterPosition -> RenderModel
-modifyModelPos (RenderModel d po path' tex col rend) pos' = RenderModel
-                                                   { dim = d
-                                                   , pos = pos'
-                                                   , path = path'
-                                                   , texture = tex
-                                                   , modelColor = col
-                                                   , renderInstr = modifyPos rend [] pos'
-                                                   }
+
+modifyModelPos :: RenderModel -> CenterPosition -> (Int, Int)
+               -> Camera -> RenderModel
+modifyModelPos (RenderModel d po path' tex col rend) (x', y')
+  (width, height) (SDL.Rectangle (P(V2 camX camY)) _) =
+  RenderModel{ dim = d, pos = pos', path = path'
+                    , texture = tex
+                    , modelColor = col
+                    , renderInstr = modifyPos rend [] pos'
+                    }
+  where pos' = (withinMap (fromIntegral width) x' (fst d) camX
+               , withinMap (fromIntegral height) y' (snd d) camY)
+        withinMap con u d c
+          | (u + d) >= (con - c) = (con - c - d)
+          | u < 0 = 0
+          | otherwise = u
 
 checkOffset :: Camera -> Camera -> Camera
 checkOffset (SDL.Rectangle (P(V2 camX camY)) (V2 cW cH))
