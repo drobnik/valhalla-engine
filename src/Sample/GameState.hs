@@ -2,6 +2,7 @@ module GameState where
 
 import qualified Data.Map as Map
 import Data.Map (Map(..))
+import Data.Int(Int32(..))
 import Render.Model (modifyModelPos, renPos
                     , RenderModel(..), dummyModel
                     ,  addCameraOffset
@@ -31,7 +32,7 @@ getTilesModels :: GameState -> [RenderModel]
 getTilesModels (GameState lvl _ maps) = getModels (tiles (maps !! lvl)) []
 
 --change
-changeWorld :: GameState -> Camera -> RenderModel -> (CInt, CInt)
+changeWorld :: GameState -> Camera -> RenderModel -> (Int32, Int32)
             -> W.World
 changeWorld (GameState lvl world _) cam playerM pos  = W.updateWorld
                                                     world cam playerM pos lvl
@@ -90,9 +91,9 @@ initStateG = GameState { level = 1
                        , world = undefined
                        , maps = []
                        }
-calcSum :: Camera -> (CInt, CInt) -> (CInt, CInt)
+calcSum :: Camera -> (CInt, CInt) -> (Int32, Int32)
 calcSum (SDL.Rectangle (P(V2 camX camY)) _) (x, y) =
-  ((camX + x),(camY + y))
+  (fromIntegral(camX + x + 1), fromIntegral (camY + y + 1))
 
 gameLoop :: IORef EngineState -> IORef GameState -> Double -> IO ()
 gameLoop es gs timeStep = do
@@ -101,9 +102,8 @@ gameLoop es gs timeStep = do
   let activeKeys = keys engineState
       playerMod = W.heroM $ getPlayer gameState
       levelDims = levelInfo gameState
-      position = modelPosition activeKeys (renPos playerMod) timeStep --beirze z modela
+      position = modelPosition activeKeys (renPos playerMod) timeStep
  -- check for collisions? + react
-      --(x, y) = modelPosition activeKeys (W.pPos (getPlayer gameState)) timeStep
       model' = modifyModelPos playerMod position levelDims
                (camera engineState)
       cam' = calcCameraPosition (camera engineState) model'
@@ -111,7 +111,7 @@ gameLoop es gs timeStep = do
       correctCam = checkOffset (camera engineState) cam'
       tileslvl = changeTilesLvl gameState correctCam
       tiles = updateMap gameState tileslvl
-      world = changeWorld gameState correctCam model' position
-  D.traceIO(show (calcSum cam' position))
+      world = changeWorld gameState correctCam model' (calcSum cam' position)
+  D.traceIO(show(W.pBox $ getPlayer gameState))
   writeIORef gs (modifyGameState tiles world gameState)
   writeIORef es engineState{camera = cam'}

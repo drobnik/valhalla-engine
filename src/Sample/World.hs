@@ -8,6 +8,7 @@ import SDL(V2(..), Point(P))
 import qualified SDL (Rectangle(..))
 import Render.Model (RenderModel (..), modifyPos, Camera(..))
 import qualified Render.Model as RM (pos)
+import Engine.Collision (Collidable(..), makeBox, BoundingBox(BoundingBox))
 import Engine.Datas
 import Engine.Consts
 import GameData
@@ -29,7 +30,10 @@ data Player = Player
             , pPos :: (Double, Double)
             , pBox :: BoundingBox
             , heroM :: RenderModel
-            }
+            } deriving (Eq, Ord)
+
+instance Collidable Player where
+  boundingBox = pBox
 
 data Level = Level
              { collectables :: Map Int (Entity EntityType)
@@ -46,8 +50,12 @@ data Entity a = Entity
                 , value :: Int
                 , pos :: (Int32, Int32)
                 , kind :: a
+                , eBox :: BoundingBox
                 , model :: RenderModel
-                } deriving Show
+                } deriving (Eq, Ord, Show)
+
+instance (Ord a) => Collidable (Entity a) where
+  boundingBox = eBox
 
 setupWorld :: [Entity EntityType] -> Player -> World
 setupWorld entities p = World
@@ -78,10 +86,14 @@ getLvlModels :: Level -> [RenderModel]
 getLvlModels (Level cosMap _ _ _) = map World.model (elems cosMap)
 
 updatePlayer :: Player -> RenderModel -> (Double, Double) -> Player
-updatePlayer old rm po = old{pPos = po, heroM = rm}
+updatePlayer old@(Player (w, h) _ _ _ _) rm po@(x, y) = old
+                                                        {pPos = po
+                                                        , heroM = rm
+                                                        , pBox = makeBox
+                                                          (floor x) (floor y) w h}
 
 -- add update for player
-updateWorld :: World -> Camera -> RenderModel -> (CInt, CInt) -> Int
+updateWorld :: World -> Camera -> RenderModel -> (Int32, Int32) -> Int
             -> World
 updateWorld (World lvls liv p scr) cam pModel (xp, yp) num = (World lvls' liv pi scr)
   where
@@ -112,14 +124,14 @@ modifyEntities :: Camera -> Map Int (Entity EntityType)
 modifyEntities cam collectables = M.map (changeEnt cam) collectables
 
 changeEnt :: Camera -> Entity EntityType -> Entity EntityType
-changeEnt (SDL.Rectangle (P(V2 camX camY)) s) (Entity d val p k
+changeEnt (SDL.Rectangle (P(V2 camX camY)) s) (Entity d val p k bbox
                                              rm@(RenderModel _ (x, y) _
                                                  _ _ instr)) =
   Entity {World.dim = d, value = val, World.pos = p,
-       World.kind = k, World.model = rm{ RM.pos = (CInt x', CInt y')
-                             , renderInstr = modifyPos
-                                             instr [] (CInt x', CInt y')
-                             }}
+       World.kind = k, eBox = bbox, World.model = rm{ RM.pos = (CInt x', CInt y')
+                                                    , renderInstr = modifyPos
+                                                      instr [] (CInt x', CInt y')
+                                                    }}
   where (x', y') = (fromIntegral (x - camX), fromIntegral (y - camY))
 
 

@@ -8,17 +8,10 @@ import Data.Int
 import Render.Model
 import Foreign.C.Types
 import Engine.Consts
+import Engine.Collision(makeBox, BoundingBox(BoundingBox))
 -- datas and types used in this engine
 
 type ActiveKeys = Set SDL.Keycode
-
-class Collidable a where
-  boundingBox :: a -> BoundingBox
-
-data BoundingBox = BoundingBox
-                 { topLeftA :: (Int32, Int32)
-                 , bottomRightB :: (Int32, Int32)
-                 } deriving Eq
 
 data EngineState = EngineState
                  { keys :: ActiveKeys
@@ -26,11 +19,6 @@ data EngineState = EngineState
                  , over :: Bool
                  , camera :: Camera
                  }
-
-makeBox :: Int -> Int -> Int32 -> Int32 -> BoundingBox --temp 1 arg
-makeBox x y w h = BoundingBox (x', y') ((x' + w), (y' + h))
-  where x' = fromIntegral x
-        y' = fromIntegral y
 
 closeGame :: IORef EngineState -> IO ()
 closeGame es = do

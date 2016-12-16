@@ -9,6 +9,7 @@ import Render.Model (modifyModelPos, renPos, RenderModel(..))
 import Render.Primitives
 import Data.Int
 import Foreign.C.Types
+import Engine.Collision (Collidable(..), BoundingBox(BoundingBox))
 
 import qualified Debug.Trace as D
 --game specific directions + commands
@@ -24,9 +25,9 @@ data Tile a = Tile
               , kind :: a
               , model :: RenderModel
               , tBox :: BoundingBox
-              } deriving (Eq)
+              } deriving (Eq, Ord)
 
-instance Collidable (Tile a) where
+instance (Ord a) => Collidable (Tile a) where
   boundingBox = tBox
 
 instance (Show a) => Show (Tile a) where

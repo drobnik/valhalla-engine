@@ -12,6 +12,7 @@ import Render.Primitives
 import GameState
 import GameData
 import Engine.Datas
+import Engine.Collision (makeBox, BoundingBox(BoundingBox))
 import World (Entity(..), EntityType(..))
 import qualified World as W
 import SDL.Vect
@@ -233,12 +234,13 @@ loadUnit _ textures = createUnit (fromMaybe (Texture undefined (V2 0 0))
 createUnit :: Texture -> EntityType -> Int -> (Int32, Int32)
            -> Entity EntityType
 createUnit tex@(Texture _ (V2 w h)) kind value (x, y) = Entity (w', h') value
-                                                        (x, y) kind modE
+                                                        (x, y) kind bBox modE
   where
     w' = fromIntegral w
     h' = fromIntegral h
     modE = RenderModel (w,h) (CInt x, CInt y) undefined tex
           (V4 0 0 0 255) [RenderTexture tex (CInt x, CInt y)]
+    bBox = makeBox (fromIntegral x) (fromIntegral y) w' h'
 
 loadPlayer :: SDL.Renderer -> Map UnitKind Texture -> W.Player
 loadPlayer ren textures = W.Player (w', h') 3 (10, 390) (makeBox 10 390 w' h') modP
