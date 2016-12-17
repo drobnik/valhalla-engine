@@ -17,22 +17,25 @@ import qualified Data.Map as Map
 
 -- moze zaleznosc engine do tefo?
 data Engine = Engine
-                { windowManager :: WindowManager
-                , engineS :: IORef EngineState
-                --, physics :: Physics
-                --, update :: DeltaTime -> a -> a -- zmiana stanu gry
-                }
+              { windowManager :: WindowManager
+              , engineS :: IORef EngineState
+              --, physics :: Physics
+              --, update :: DeltaTime -> a -> a -- zmiana stanu gry
+              }
 
 
 sampleEngine :: IORef EngineState -> Engine
-sampleEngine es = Engine {windowManager = sampleWinManager
-                         , engineS = es
-                         }
+sampleEngine es = Engine
+                 { windowManager = sampleWinManager
+                 , engineS = es
+                 }
 
 -- po callbacku podmieniaj stan silnika!
 runEngine :: Engine -> IORef GameState -> IO ()
 runEngine e@(Engine win eState) gs = do
   (window, renderer) <- initWin win
+  eState' <- readIORef eState
+  writeIORef eState (eState'{winSetup = winInfo win})
   loadGame renderer gs
   timer <- newIORef(initTimer)
   engineLoop gs eState window renderer timer

@@ -9,7 +9,7 @@ maxLvl :: Int
 maxLvl = 5
 
 data BoxKind = TileGround | TileLava | TileSpikes | CollCoin | CollHealth
-             | CollGate | CollPlayer deriving (Eq, Ord)
+             | CollGate | CollPlayer deriving (Show, Eq, Ord)
 
 class Ord a => Collidable a where
   boundingBox :: a -> BoundingBox
@@ -78,6 +78,10 @@ insert lvl obj@(box', k') qtree = case qtree of
                (TEmpty (lvl + 1) ((x, (y + verMid)), (newW, newH)))
                (TEmpty (lvl + 1) (((x + horMid), (y + verMid)), (newW, newH)))
          in insert lvl obj newNode
+
+insertElements :: [(BoundingBox, BoxKind)] -> Quadtree -> Quadtree
+insertElements (x:xs) tree = insertElements xs (insert 0 x tree)
+insertElements [] tree = tree
 
 -- pass a bounding box of player and get other boxes in this quad
 retrieve :: (BoundingBox, BoxKind) -> Quadtree -> [(BoundingBox, BoxKind)]

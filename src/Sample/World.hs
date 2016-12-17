@@ -132,8 +132,11 @@ changeEnt (SDL.Rectangle (P(V2 camX camY)) s) (Entity d val p k bbox
 
 getEntitiesBoxes ::  World -> Int -> [(BoundingBox, BoxKind)]
 getEntitiesBoxes (World levels _ _ _) lvl = zip boxes kinds
-  where entities' = elems (collectables $ levels !! lvl)
+  where entities' = elems (collectables $ levels !! (lvl - 1))
         (boxes, kinds) = enBoxKind entities' ([], [])
+
+playerBox :: World -> (BoundingBox, BoxKind)
+playerBox (World _ _ player _) = (pBox player, CollPlayer)
 
 enBoxKind :: [Entity] -> ([BoundingBox], [BoxKind])
           -> ([BoundingBox], [BoxKind])

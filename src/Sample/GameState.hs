@@ -106,17 +106,23 @@ gameLoop es gs timeStep = do
              (getLevelSize gameState)
       player = W.updatePlayer (getPlayer gameState) model' (calcSum cam' position)
       -- quadtree + collisions + react
+      tree = insertElements (getBoundingBoxes gameState) (newQuadtree 0
+                                                         (winSetup engineState))
+      tempColl = retrieve (W.playerBox world) tree
       correctCam = checkOffset (camera engineState) cam'
       tileslvl = changeTilesLvl gameState correctCam
       tiles = updateMap gameState tileslvl
       world = changeWorld gameState correctCam player
-  --D.traceIO(show(W.heroM $ getPlayer gameState))
+
+  D.traceIO (show (length tempColl))
+  D.traceIO (show (W.pPos $ getPlayer gameState))
   writeIORef gs (modifyGameState tiles world gameState)
   writeIORef es engineState{camera = cam'}
 
 --later: read from json config file maybe?
 initStateG :: GameState
-initStateG = GameState { level = 1
-                       , world = undefined
-                       , maps = []
-                       }
+initStateG = GameState
+             { level = 1
+             , world = undefined
+             , maps = []
+             }

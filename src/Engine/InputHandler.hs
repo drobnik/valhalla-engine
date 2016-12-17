@@ -19,7 +19,7 @@ handleEvents es events = foldMap (\ev -> inputUpdate es ev) events
       SDL.QuitEvent -> closeGame estate
       SDL.KeyboardEvent es -> keyboardEvents es estate
       SDL.MouseMotionEvent es -> return ()
-      SDL.MouseButtonEvent es -> return () --temp
+      SDL.MouseButtonEvent es -> return ()
       _ -> return ()
 
 keyboardEvents :: SDL.KeyboardEventData -> IORef EngineState -> IO ()
@@ -31,8 +31,8 @@ keyboardEvents e estate
   where
     getKey e = SDL.keysymKeycode (SDL.keyboardEventKeysym e)
     keyUpdate key f = do
-      (EngineState keys' dt' ov cam') <- readIORef estate
+      (EngineState keys' dt' ov cam' w') <- readIORef estate
       let keysUpd = f key keys'
           engine = EngineState{keys = keysUpd, dt = dt', over = ov
-                              ,camera = cam'}
+                              ,camera = cam', winSetup = w'}
       writeIORef estate engine

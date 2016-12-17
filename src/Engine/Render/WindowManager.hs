@@ -29,7 +29,7 @@ instance Initializable WindowManager where
     window <- SDL.createWindow t
               SDL.defaultWindow{ SDL.windowInitialSize = V2 w h
                                , SDL.windowPosition = SDL.Centered
-                               , SDL.windowResizable = True}
+                               }
 
     SDL.showWindow window
     renderer <- renderInit window
@@ -41,6 +41,10 @@ initWinManager title' size pos =
                 , winSize = size
                 , winPos = pos
                 }
+
+winInfo :: WindowManager -> ((Int32, Int32), (Int32, Int32))
+winInfo (WindowManager _ (w, h) (x, y)) = ((fromIntegral w, fromIntegral h)
+                                           , (fromIntegral x, fromIntegral y))
 
 sampleWinManager :: WindowManager
 sampleWinManager = initWinManager "Testing.." (viewWidth, viewHeight)

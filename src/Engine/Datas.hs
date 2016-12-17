@@ -8,7 +8,6 @@ import Data.Int
 import Render.Model
 import Foreign.C.Types
 import Engine.Consts
-import Engine.Collision(makeBox, BoundingBox(BoundingBox))
 -- datas and types used in this engine
 
 type ActiveKeys = Set SDL.Keycode
@@ -18,6 +17,7 @@ data EngineState = EngineState
                  , dt :: Double -- last delta time
                  , over :: Bool
                  , camera :: Camera
+                 , winSetup :: ((Int32, Int32), (Int32, Int32))
                  }
 
 closeGame :: IORef EngineState -> IO ()
@@ -27,7 +27,7 @@ closeGame es = do
 
 --TEMP
 isOver :: EngineState -> Bool
-isOver (EngineState keys _ over _) = over || (SDL.KeycodeEscape `elem` keys) ||
+isOver (EngineState keys _ over _ _) = over || (SDL.KeycodeEscape `elem` keys) ||
                               (SDL.KeycodeQ `elem` keys)
 
 sampleState :: EngineState
