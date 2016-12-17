@@ -224,7 +224,7 @@ loadUnit (x:y:z:[]) textures = case x of
     where texG = fromMaybe (Texture undefined (V2 0 0))
                  (getUnitTex textures GateU)
 
-  "healthUp" -> createUnit texH Collect 0 ((read y), (read z))
+  "healthUp" -> createUnit texH BonusH 0 ((read y), (read z))
     where texH = fromMaybe (Texture undefined (V2 0 0))
                  (getUnitTex textures HealthUpU)
 loadUnit _ textures = createUnit (fromMaybe (Texture undefined (V2 0 0))

@@ -8,7 +8,8 @@ import SDL(V2(..), Point(P))
 import qualified SDL (Rectangle(..))
 import Render.Model (RenderModel (..), modifyPos, Camera(..))
 import qualified Render.Model as RM (pos)
-import Engine.Collision (Collidable(..), makeBox, BoundingBox(BoundingBox))
+import Engine.Collision (Collidable(..), makeBox, BoundingBox(BoundingBox)
+                        , BoxKind(..))
 import Engine.Datas
 import Engine.Consts
 import GameData
@@ -21,7 +22,7 @@ data World = World
            , wholeScore :: Int
            }
 
-data EntityType = Collect | Gate
+data EntityType = Collect | Gate | BonusH
   deriving (Show, Eq, Ord)
 
 data Player = Player
@@ -129,11 +130,23 @@ changeEnt (SDL.Rectangle (P(V2 camX camY)) s) (Entity d val p k bbox
                                                     }}
   where (x', y') = (fromIntegral (x - camX), fromIntegral (y - camY))
 
-getCollidablesWorld ::  World -> Int -> [Entity]
-getCollidablesWorld (World levels _ _ _) lvl = getCollidablesLvl (levels !! lvl)
+getEntitiesBoxes ::  World -> Int -> [(BoundingBox, BoxKind)]
+getEntitiesBoxes (World levels _ _ _) lvl = zip boxes kinds
+  where entities' = elems (collectables $ levels !! lvl)
+        (boxes, kinds) = enBoxKind entities' ([], [])
 
-getCollidablesLvl :: Level -> [Entity]
-getCollidablesLvl (Level colls _ _ _) = elems colls
+enBoxKind :: [Entity] -> ([BoundingBox], [BoxKind])
+          -> ([BoundingBox], [BoxKind])
+enBoxKind (e:es) (box, kind) = enBoxKind es ((box':box), (kind':kind))
+  where (box', kind') = mapBox e
+enBoxKind [] boxes = boxes
+
+mapBox :: Entity -> (BoundingBox, BoxKind)
+mapBox (Entity _ _ _ kind box _) = (box, check kind)
+  where check k = case k of
+                    BonusH -> CollHealth
+                    Collect -> CollCoin
+                    Gate -> CollGate
 
 getSome :: (Collidable a) => Map Int Entity -> [a]
 getSome colls = undefined

@@ -8,6 +8,9 @@ maxObj = 10
 maxLvl :: Int
 maxLvl = 5
 
+data BoxKind = TileGround | TileLava | TileSpikes | CollCoin | CollHealth
+             | CollGate | CollPlayer deriving (Eq, Ord)
+
 class Ord a => Collidable a where
   boundingBox :: a -> BoundingBox
 
@@ -29,22 +32,22 @@ type Bounds = ((Int32, Int32), (Int32, Int32)) --(x, y) (w, h)
 data Quad = TopQuadR | BottomQuadR | TopQuadL | BottomQuadL | None
 
 -- to limit collision detection
-data (Collidable a) => Quadtree a = TEmpty Int Bounds
-                                  | TLeaf Int Bounds [a]
-                                  | TNode Int Bounds (Quadtree a)
-                                           (Quadtree a) (Quadtree a) (Quadtree a)
-                                           deriving Eq
+data Quadtree = TEmpty Int Bounds
+              | TLeaf Int Bounds [(BoundingBox, BoxKind)]
+              | TNode Int Bounds Quadtree
+                Quadtree Quadtree Quadtree
+              deriving Eq
 
-newQuadtree :: (Collidable a) => Int -> Bounds -> Quadtree a
+newQuadtree :: Int -> Bounds -> Quadtree
 newQuadtree lvl bounds' = TEmpty lvl bounds'
 
-insert :: (Collidable a) => Int -> a -> Quadtree a -> Quadtree a
-insert lvl obj qtree = case qtree of
+insert :: Int -> (BoundingBox, BoxKind) -> Quadtree -> Quadtree
+insert lvl obj@(box', k') qtree = case qtree of
   TNode lvl pos@((x, y), (w, h)) n0 n1 n2 n3
     -> let
     verMid = x + (w `div` 2)
     horMid = y + (h `div` 2)
-    (BoundingBox (xA, yA) (xB, yB)) = boundingBox obj
+    (BoundingBox (xA, yA) (xB, yB)) = box'
     node0 -- if it fits, go deeper and add a value
       | xA < horMid && yB < verMid = insert (lvl + 1) obj n0
       | otherwise = n0 -- leave it alone
@@ -77,17 +80,17 @@ insert lvl obj qtree = case qtree of
          in insert lvl obj newNode
 
 -- pass a bounding box of player and get other boxes in this quad
-retrieve :: (Collidable a) => a -> Quadtree a -> [a]
-retrieve obj tree = case tree of
+retrieve :: (BoundingBox, BoxKind) -> Quadtree -> [(BoundingBox, BoxKind)]
+retrieve obj@(box', k) tree = case tree of
   TNode lvl pos@((x, y), (w, h)) n0 n1 n2 n3
     -> let
     verMid = x + (w `div` 2)
     horMid = y + (h `div` 2)
-    (BoundingBox (xA, yA) (xB, yB)) = boundingBox obj
+    (BoundingBox (xA, yA) (xB, yB)) = box'
     node
       | xA < horMid && yB < verMid = n0
       | xA > horMid && yB < verMid = n1
-      | xA < horMid && yB > verMid =  n2
-      | xA > x && yB > y = n3
+      | xA < horMid && yB > verMid = n2
+      | xA > horMid && yB > verMid = n3
     in retrieve obj node
   TLeaf lvl pos objs -> objs

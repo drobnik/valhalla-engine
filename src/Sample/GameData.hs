@@ -4,12 +4,13 @@ import SDL (V2 (..), Point(..), Rectangle(..))
 import qualified SDL
 import Engine.Datas
 import Engine.Consts
-import Data.Set as Set
+import qualified Data.Set as Set (map, elems)
 import Render.Model (modifyModelPos, renPos, RenderModel(..))
 import Render.Primitives
 import Data.Int
 import Foreign.C.Types
-import Engine.Collision (Collidable(..), BoundingBox(BoundingBox))
+import Engine.Collision (Collidable(..), BoundingBox(BoundingBox)
+                        , BoxKind(..))
 
 import qualified Debug.Trace as D
 --game specific directions + commands
@@ -53,6 +54,22 @@ renderModel (Tile _ _ _ mod _) = mod
 type TileSize = V2 Int32
 type TileTexture = (TileSize, [((Rectangle Int32), TileKind)])
 
+getTilesBox :: TileMap -> [(BoundingBox, BoxKind)]
+getTilesBox t = zip boxes kinds
+  where tiles' = filter(\x -> kind x /= Sky) (tiles t)
+        (boxes, kinds) = mapTiles tiles' ([], [])
+
+mapTiles :: [Tile] -> ([BoundingBox], [BoxKind]) -> ([BoundingBox], [BoxKind])
+mapTiles (t:ts) (boxes, kinds) = mapTiles ts ((b:boxes),(k:kinds))
+  where (b, k) = tileBoxKind t
+mapTiles [] boxes = boxes
+
+tileBoxKind :: Tile -> (BoundingBox, BoxKind)
+tileBoxKind (Tile _ _ kind _ tbox) = (tbox, check kind)
+  where check kind = case kind of
+                 Ground -> TileGround
+                 Lava -> TileLava
+                 Spikes -> TileSpikes
 -- temp!!
 tilePath :: FilePath
 tilePath = "example_data/tiles.bmp"

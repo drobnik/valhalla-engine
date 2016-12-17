@@ -63,6 +63,10 @@ changeTile  (SDL.Rectangle (P(V2 camX camY)) _)
 getWorldModels :: GameState -> [RenderModel]
 getWorldModels (GameState _ wor _) = W.renderWorld wor
 
+getBoundingBoxes :: GameState -> [(BoundingBox, BoxKind)]
+getBoundingBoxes (GameState lvl world' maps') = W.getEntitiesBoxes world' lvl
+                                                ++ (getTilesBox (maps' !! lvl))
+
 getPlayer :: GameState -> W.Player
 getPlayer (GameState _ world _) = W.player world
 
@@ -78,11 +82,6 @@ getModelKey n modMap = case Map.lookup n modMap of
 modifyGameState :: [TileMap] -> W.World -> GameState -> GameState
 modifyGameState  tileCam wor' (GameState lvl _ _) =
   GameState{ level = lvl, world = wor', maps = tileCam}
-
-getCollidables :: (Collidable a) => GameState -> [a]
-getCollidables (GameState lvl w maps) = getColl (maps !! lvl)
-  where getColl q = case q of
-          (TileMap _ _ tiles _) -> tiles
 
 getLevelSize :: GameState -> (CInt, CInt)
 getLevelSize (GameState lvl _ maps) =
