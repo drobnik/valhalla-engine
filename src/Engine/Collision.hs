@@ -30,13 +30,13 @@ collide (BoundingBox (lt1, top1) (rt1, bot1)) (BoundingBox (lt2, top2) (rt2, bot
 
 type Bounds = ((Int32, Int32), (Int32, Int32)) --(x, y) (w, h)
 data Quad = TopQuadR | BottomQuadR | TopQuadL | BottomQuadL | None
-
+  deriving Show
 -- to limit collision detection
 data Quadtree = TEmpty Int Bounds
               | TLeaf Int Bounds [(BoundingBox, BoxKind)]
               | TNode Int Bounds Quadtree
                 Quadtree Quadtree Quadtree
-              deriving Eq
+              deriving (Eq, Show)
 
 newQuadtree :: Int -> Bounds -> Quadtree
 newQuadtree lvl bounds' = TEmpty lvl bounds'
@@ -59,6 +59,7 @@ insert lvl obj@(box', k') qtree = case qtree of
       | otherwise = n2
     node3
       | xA > x && yB > y = insert (lvl + 1) obj n3
+      | otherwise = n3
     in TNode lvl pos node0 node1 node2 node3
 
   TLeaf lvl pos objs
@@ -73,7 +74,8 @@ insert lvl obj@(box', k') qtree = case qtree of
              newH = h `div` 2
              verMid = x + (w `div` 2)
              horMid = y + (h `div` 2)
-             newNode = TNode lvl ((x, y), (w, h)) (TEmpty (lvl + 1) ((x, y), (newW, newH)))
+             newNode = TNode lvl ((x, y), (w, h))
+               (TEmpty (lvl + 1) ((x, y), (newW, newH)))
                (TEmpty (lvl + 1) (((x + horMid), y), (newW, newH)))
                (TEmpty (lvl + 1) ((x, (y + verMid)), (newW, newH)))
                (TEmpty (lvl + 1) (((x + horMid), (y + verMid)), (newW, newH)))
@@ -98,3 +100,11 @@ retrieve obj@(box', k) tree = case tree of
       | xA > horMid && yB > verMid = n3
     in retrieve obj node
   TLeaf lvl pos objs -> objs
+
+-- return a list with objects colliding with the player
+checkCollisions :: (BoundingBox, BoxKind) -> [(BoundingBox, BoxKind)]
+                -> [(BoundingBox, BoxKind)] -> [(BoundingBox, BoxKind)]
+checkCollisions (pBox, player) ((box, kind):xs) colls
+  | collide pBox box = checkCollisions (pBox, player) xs ((box, kind):colls)
+  | otherwise = checkCollisions (pBox, player) xs colls
+checkCollisions  _ [] colls = colls

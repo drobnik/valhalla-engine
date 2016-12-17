@@ -44,7 +44,7 @@ initWinManager title' size pos =
 
 winInfo :: WindowManager -> ((Int32, Int32), (Int32, Int32))
 winInfo (WindowManager _ (w, h) (x, y)) = ((fromIntegral w, fromIntegral h)
-                                           , (fromIntegral x, fromIntegral y))
+                                           , (0, 0))
 
 sampleWinManager :: WindowManager
 sampleWinManager = initWinManager "Testing.." (viewWidth, viewHeight)
