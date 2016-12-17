@@ -11,6 +11,7 @@ import Render.Model (modifyModelPos, renPos
 import qualified Render.Model as RM (pos, dim)
 import Engine.Datas
 import Engine.Timer
+import Engine.Collision
 import Engine.Consts
 import Data.IORef
 import Foreign.C.Types (CInt(..))
@@ -25,7 +26,7 @@ import qualified Debug.Trace as D
 data GameState = GameState
                  { level :: Int
                  , world :: W.World
-                 , maps :: [TileMap TileKind] -- level maps
+                 , maps :: [TileMap] -- level maps
                  }
 
 getTilesModels :: GameState -> [RenderModel]
@@ -36,20 +37,20 @@ changeWorld :: GameState -> Camera -> W.Player -> W.World
 changeWorld (GameState lvl world _) cam player = W.updateWorld
                                                     world cam player lvl
 
-updateMap :: GameState -> [TileMap TileKind] -> [TileMap TileKind]
+updateMap :: GameState -> [TileMap] -> [TileMap]
 updateMap (GameState lvl _ maps) tiles = take lvl maps ++ tiles
                                            ++ drop (lvl+1) maps
 
-changeTilesLvl :: GameState -> Camera -> [TileMap TileKind]
+changeTilesLvl :: GameState -> Camera -> [TileMap]
 changeTilesLvl (GameState lvl _ maps) cam = [changeTiles cam (maps !! lvl)]
 
-changeTiles :: Camera -> TileMap TileKind -> TileMap TileKind
+changeTiles :: Camera -> TileMap -> TileMap
 changeTiles cam tileMap = map''
   where
         (TileMap w h tiles' pat) = tileMap
         map'' = TileMap w h (map (changeTile cam) tiles') pat
 
-changeTile :: Camera -> Tile TileKind -> Tile TileKind
+changeTile :: Camera -> Tile -> Tile
 changeTile  (SDL.Rectangle (P(V2 camX camY)) _)
   (Tile d p k rm@(RenderModel _ (x, y) _ _ _ instr) box) =
    Tile { GD.dim = d, GD.pos = p, kind = k, model = rm
@@ -74,9 +75,14 @@ getModelKey n modMap = case Map.lookup n modMap of
   Just m -> m
   Nothing -> dummyModel
 
-modifyGameState :: [TileMap TileKind] -> W.World -> GameState -> GameState
+modifyGameState :: [TileMap] -> W.World -> GameState -> GameState
 modifyGameState  tileCam wor' (GameState lvl _ _) =
   GameState{ level = lvl, world = wor', maps = tileCam}
+
+getCollidables :: (Collidable a) => GameState -> [a]
+getCollidables (GameState lvl w maps) = getColl (maps !! lvl)
+  where getColl q = case q of
+          (TileMap _ _ tiles _) -> tiles
 
 getLevelSize :: GameState -> (CInt, CInt)
 getLevelSize (GameState lvl _ maps) =

@@ -22,7 +22,7 @@ data World = World
            }
 
 data EntityType = Collect | Gate
-  deriving Show
+  deriving (Show, Eq, Ord)
 
 data Player = Player
             { pDim :: (Int32, Int32)
@@ -36,7 +36,7 @@ instance Collidable Player where
   boundingBox = pBox
 
 data Level = Level
-             { collectables :: Map Int (Entity EntityType)
+             { collectables :: Map Int Entity
              , score :: Int
              , scoreToEnd :: Int
              , isGateOpen :: Bool
@@ -45,19 +45,19 @@ data Level = Level
 instance Show Level where
   show (Level col _ _ _) = show (elems col)
 
-data Entity a = Entity
-                { dim :: (Int32, Int32)
-                , value :: Int
-                , pos :: (Int32, Int32)
-                , kind :: a
-                , eBox :: BoundingBox
-                , model :: RenderModel
-                } deriving (Eq, Ord, Show)
+data Entity = Entity
+              { dim :: (Int32, Int32)
+              , value :: Int
+              , pos :: (Int32, Int32)
+              , kind :: EntityType
+              , eBox :: BoundingBox
+              , model :: RenderModel
+              } deriving (Eq, Ord, Show)
 
-instance (Ord a) => Collidable (Entity a) where
+instance Collidable Entity where
   boundingBox = eBox
 
-setupWorld :: [Entity EntityType] -> Player -> World
+setupWorld :: [Entity] -> Player -> World
 setupWorld entities p = World
                       { level = [sampleLevel entities]
                       , playerLives = 3
@@ -65,7 +65,7 @@ setupWorld entities p = World
                       , wholeScore = 0
                       }
 
-sampleLevel :: [Entity EntityType] -> Level
+sampleLevel :: [Entity] -> Level
 sampleLevel entities = Level
                        { collectables = fromList (zip [1..18] entities)
                        , score = 0
@@ -114,11 +114,11 @@ changeUnits cam (Level coll se' toEnd isOpen) = Level{ collectables =
                                                         , isGateOpen = isOpen
                                                         }
 
-modifyEntities :: Camera -> Map Int (Entity EntityType)
-               -> Map Int (Entity EntityType)
+modifyEntities :: Camera -> Map Int (Entity)
+               -> Map Int (Entity)
 modifyEntities cam collectables = M.map (changeEnt cam) collectables
 
-changeEnt :: Camera -> Entity EntityType -> Entity EntityType
+changeEnt :: Camera -> Entity -> Entity
 changeEnt (SDL.Rectangle (P(V2 camX camY)) s) (Entity d val p k bbox
                                              rm@(RenderModel _ (x, y) _
                                                  _ _ instr)) =
@@ -129,13 +129,13 @@ changeEnt (SDL.Rectangle (P(V2 camX camY)) s) (Entity d val p k bbox
                                                     }}
   where (x', y') = (fromIntegral (x - camX), fromIntegral (y - camY))
 
-getCollidablesWorld :: (Collidable a) => World -> Int -> [a]
+getCollidablesWorld ::  World -> Int -> [Entity]
 getCollidablesWorld (World levels _ _ _) lvl = getCollidablesLvl (levels !! lvl)
 
-getCollidablesLvl :: (Collidable a) => Level -> [a]
+getCollidablesLvl :: Level -> [Entity]
 getCollidablesLvl (Level colls _ _ _) = elems colls
 
-getSome :: (Collidable a) => Map Int (Entity EntityType) -> [a]
+getSome :: (Collidable a) => Map Int Entity -> [a]
 getSome colls = undefined
 
 runWorld = undefined

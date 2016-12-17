@@ -17,37 +17,37 @@ data Direction = LeftDir | RightDir | UpDir | DownDir | Unknown | End
   deriving (Show, Eq, Ord)
 
 data TileKind = Sky | Ground | Lava | Spikes
-  deriving (Show, Eq)
+  deriving (Show, Eq, Ord)
 
-data Tile a = Tile
-              { dim :: (Int32, Int32)
-              , pos :: (Int32, Int32)
-              , kind :: a
-              , model :: RenderModel
-              , tBox :: BoundingBox
-              } deriving (Eq, Ord)
+data Tile = Tile
+            { dim :: (Int32, Int32)
+            , pos :: (Int32, Int32)
+            , kind :: TileKind
+            , model :: RenderModel
+            , tBox :: BoundingBox
+            } deriving (Eq, Ord)
 
-instance (Ord a) => Collidable (Tile a) where
+instance Collidable Tile where
   boundingBox = tBox
 
-instance (Show a) => Show (Tile a) where
+instance Show Tile where
   show (Tile dim pos kind _ _) = "Tile| dimens:" ++ show dim ++ ", pos:"
                              ++ show pos ++ ", kind:" ++ show kind ++ "\t"
-data TileMap a = TileMap
-                 { width :: Int
-                 , height :: Int
-                 , tiles :: [Tile a]
-                 , tilesPath :: FilePath
-                 }
+data TileMap = TileMap
+               { width :: Int
+               , height :: Int
+               , tiles :: [Tile]
+               , tilesPath :: FilePath
+               }
 
-instance Show a => Show (TileMap a) where
+instance Show TileMap where
   show (TileMap _ _ tiles _ ) = show tiles
 
-getModels :: [Tile TileKind]-> [RenderModel] -> [RenderModel]
+getModels :: [Tile]-> [RenderModel] -> [RenderModel]
 getModels (x:xs) rm = getModels xs ((renderModel x):rm)
 getModels [] rm = rm
 
-renderModel :: Tile TileKind -> RenderModel
+renderModel :: Tile -> RenderModel
 renderModel (Tile _ _ _ mod _) = mod
 
 type TileSize = V2 Int32

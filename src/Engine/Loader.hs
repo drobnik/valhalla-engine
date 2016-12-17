@@ -110,13 +110,13 @@ loadUnitLines (LoadConfig _ cPath)
   | otherwise = return ([])
 
 --todo: load config from file
-loadMaps :: [String] -> [TileMap TileKind] -> [TileMap TileKind]
+loadMaps :: [String] -> [TileMap] -> [TileMap]
 loadMaps st@(x:xs) tilesMap = loadMaps str' (map':tilesMap)
   where (map', str') = loadMap st 0 0 (TileMap 0 0 [] tilePath)
 loadMaps [] tilesMap = tilesMap
 
-loadMap :: [String] -> Int -> Int -> TileMap TileKind
-        -> (TileMap TileKind, [String])
+loadMap :: [String] -> Int -> Int -> TileMap
+        -> (TileMap, [String])
 loadMap (x:xs) wAcc hAcc map'
   | null x = (map', xs)
   | length x /= 30 = loadMap xs wAcc hAcc ((setWH (words x) map'))
@@ -124,8 +124,8 @@ loadMap (x:xs) wAcc hAcc map'
   where (wAcc', hAcc', mapK) = transformTiles x wAcc hAcc map'
 loadMap [] _ _ map' = (map', [])
 
-transformTiles :: String -> Int -> Int -> TileMap TileKind
-               -> (Int, Int, TileMap TileKind)
+transformTiles :: String -> Int -> Int -> TileMap
+               -> (Int, Int, TileMap)
 transformTiles (x:xs) !wAcc !hAcc tm@(TileMap w' h' tiles' path) = case x of
   '0' -> transformTiles xs w h tm{tiles = tile:tiles'}
     where (w, h, tile) = (makeTile Sky wAcc hAcc w' h')
@@ -140,12 +140,12 @@ transformTiles (x:xs) !wAcc !hAcc tm@(TileMap w' h' tiles' path) = case x of
     where (w, h, tile) = makeTile Spikes wAcc hAcc w' h'
 transformTiles [] wAcc hAcc map' = (wAcc, hAcc, map')
 
-setWH :: [String] -> TileMap TileKind -> TileMap TileKind
+setWH :: [String] -> TileMap -> TileMap
 setWH (x:y:z:[]) (TileMap w h tiles path) = (TileMap (read x) (read y) tiles path)
 setWH [] map' = map'
 
 makeTile :: TileKind -> Int -> Int -> Int -> Int
-         -> (Int, Int, Tile TileKind)
+         -> (Int, Int, Tile)
 makeTile kind' width height mapW mapH
   | (width + tileSInt) >= mapW = (0, (height + tileSInt)
                                  , (Tile (tileSize, tileSize)
@@ -161,26 +161,25 @@ makeTile kind' width height mapW mapH
                                                          height
                                                          tileSize tileSize))
 
-loadMapsTex :: SDL.Renderer -> [TileMap TileKind]
-           -> [TileMap TileKind] -> IO [TileMap TileKind]
+loadMapsTex :: SDL.Renderer -> [TileMap] -> [TileMap] -> IO [TileMap]
 loadMapsTex ren (x:xs) dist = do
   mapTes <- mapTex ren x
   loadMapsTex ren xs (mapTes:dist)
 loadMapsTex ren [] dist = return dist
 
-mapTex :: SDL.Renderer -> TileMap TileKind -> IO (TileMap TileKind)
+mapTex :: SDL.Renderer -> TileMap -> IO (TileMap)
 mapTex ren t@(TileMap _ _ tiles tilesPath) = do
   mainTexture <- loadTexture ren tilesPath
   let tiles' = createModels mainTexture tiles []
   return (t{tiles = tiles'})
 
-createModels :: Texture -> [Tile TileKind] -> [Tile TileKind]
-             -> [Tile TileKind]
+createModels :: Texture -> [Tile] -> [Tile]
+             -> [Tile]
 createModels t@(Texture tex (V2 w h)) (x:xs) tiles = createModels t xs
                                                      ((loadTile t x):tiles)
 createModels _ [] tiles = tiles
 
-loadTile :: Texture -> Tile TileKind -> Tile TileKind
+loadTile :: Texture -> Tile -> Tile
 loadTile tex t@(Tile (tw, _) (x, y) kin _ _) =
   t{GameData.model = RenderModel
             { RM.dim = (d, d)
@@ -196,7 +195,7 @@ loadTile tex t@(Tile (tw, _) (x, y) kin _ _) =
         dest = SDL.Rectangle (P $ V2 x' y') (V2 d d)
 
 loadUnits :: [String] -> SDL.Renderer -> Map UnitKind Texture
-          -> [Entity EntityType] -> [Entity EntityType]
+          -> [Entity] -> [Entity]
 loadUnits (x:xs) ren texs mapEnt = if not $ null x
                                       then loadUnits xs ren texs (x':mapEnt)
                                            else loadUnits xs ren texs mapEnt
@@ -215,7 +214,7 @@ loadUnitTex ren = do
 
 -- player0 390
 -- load dimensions from texture
-loadUnit :: [String] -> Map UnitKind Texture -> Entity EntityType
+loadUnit :: [String] -> Map UnitKind Texture -> Entity
 loadUnit (x:y:z:[]) textures = case x of
   "coin" -> createUnit texC Collect 10 ((read y), (read z))
     where texC = fromMaybe (Texture undefined (V2 0 0))
@@ -232,7 +231,7 @@ loadUnit _ textures = createUnit (fromMaybe (Texture undefined (V2 0 0))
                  (getUnitTex textures CoinU)) Collect 0 (10, 10)
 
 createUnit :: Texture -> EntityType -> Int -> (Int32, Int32)
-           -> Entity EntityType
+           -> Entity
 createUnit tex@(Texture _ (V2 w h)) kind value (x, y) = Entity (w', h') value
                                                         (x, y) kind bBox modE
   where
