@@ -92,21 +92,16 @@ updatePlayer old@(Player (w, h) _ _ _ _) rm po@(x, y) = old
                                                         , pBox = makeBox
                                                           (floor x) (floor y) w h}
 
--- add update for player
-updateWorld :: World -> Camera -> RenderModel -> (Int32, Int32) -> Int
-            -> World
-updateWorld (World lvls liv p scr) cam pModel (xp, yp) num = (World lvls' liv pi scr)
+updateWorld :: World -> Camera -> Player -> Int -> World
+updateWorld (World lvls liv p scr) cam play num = (World lvls' liv play scr)
   where
     updated = changeLevel lvls cam num
     lvls' = updateLevels lvls updated num
-    pi = updatePlayer p pModel (fromIntegral xp, fromIntegral yp)
 
--- wina tego dziela
 updateLevels :: [Level] -> [Level] -> Int -> [Level]
 updateLevels lvlmaps upLvl num = take (num-1) lvlmaps ++ upLvl
                                  ++ drop (num+1) lvlmaps
 
--- tutaj sie wywala!
 changeLevel :: [Level] -> Camera -> Int -> [Level]
 changeLevel level cam lvl = [changeUnits cam (level !! (lvl - 1))]
 
@@ -134,5 +129,13 @@ changeEnt (SDL.Rectangle (P(V2 camX camY)) s) (Entity d val p k bbox
                                                     }}
   where (x', y') = (fromIntegral (x - camX), fromIntegral (y - camY))
 
+getCollidablesWorld :: (Collidable a) => World -> Int -> [a]
+getCollidablesWorld (World levels _ _ _) lvl = getCollidablesLvl (levels !! lvl)
+
+getCollidablesLvl :: (Collidable a) => Level -> [a]
+getCollidablesLvl (Level colls _ _ _) = elems colls
+
+getSome :: (Collidable a) => Map Int (Entity EntityType) -> [a]
+getSome colls = undefined
 
 runWorld = undefined

@@ -2,6 +2,12 @@ module Engine.Collision where
 
 import Data.Int(Int32(..))
 
+maxObj :: Int
+maxObj = 10
+
+maxLvl :: Int
+maxLvl = 5
+
 class Ord a => Collidable a where
   boundingBox :: a -> BoundingBox
 
@@ -18,12 +24,6 @@ makeBox x y w h = BoundingBox (x', y') ((x' + w), (y' + h))
 collide :: BoundingBox -> BoundingBox -> Bool
 collide (BoundingBox (lt1, top1) (rt1, bot1)) (BoundingBox (lt2, top2) (rt2, bot2)) =
   (lt1 > rt2) && (lt2 > rt1) && (bot1 > top2) && (bot2 > top1)
-
-maxObj :: Int
-maxObj = 10
-
-maxLvl :: Int
-maxLvl = 5
 
 type Bounds = ((Int32, Int32), (Int32, Int32)) --(x, y) (w, h)
 data Quad = TopQuadR | BottomQuadR | TopQuadL | BottomQuadL | None

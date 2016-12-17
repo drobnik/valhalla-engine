@@ -32,10 +32,9 @@ getTilesModels :: GameState -> [RenderModel]
 getTilesModels (GameState lvl _ maps) = getModels (tiles (maps !! lvl)) []
 
 --change
-changeWorld :: GameState -> Camera -> RenderModel -> (Int32, Int32)
-            -> W.World
-changeWorld (GameState lvl world _) cam playerM pos  = W.updateWorld
-                                                    world cam playerM pos lvl
+changeWorld :: GameState -> Camera -> W.Player -> W.World
+changeWorld (GameState lvl world _) cam player = W.updateWorld
+                                                    world cam player lvl
 
 updateMap :: GameState -> [TileMap TileKind] -> [TileMap TileKind]
 updateMap (GameState lvl _ maps) tiles = take lvl maps ++ tiles
@@ -75,8 +74,7 @@ getModelKey n modMap = case Map.lookup n modMap of
   Just m -> m
   Nothing -> dummyModel
 
-modifyGameState :: [TileMap TileKind] -> W.World
-                -> GameState -> GameState
+modifyGameState :: [TileMap TileKind] -> W.World -> GameState -> GameState
 modifyGameState  tileCam wor' (GameState lvl _ _) =
   GameState{ level = lvl, world = wor', maps = tileCam}
 
@@ -85,13 +83,7 @@ getLevelSize (GameState lvl _ maps) =
   let (TileMap w h tiles' tilesP) = maps !! lvl
       in (CInt(fromIntegral w), CInt (fromIntegral h))
 
---later: read from json config file maybe?
-initStateG :: GameState
-initStateG = GameState { level = 1
-                       , world = undefined
-                       , maps = []
-                       }
-calcSum :: Camera -> (CInt, CInt) -> (Int32, Int32)
+calcSum :: Camera -> (CInt, CInt) -> (Double, Double)
 calcSum (SDL.Rectangle (P(V2 camX camY)) _) (x, y) =
   (fromIntegral(camX + x + 1), fromIntegral (camY + y + 1))
 
@@ -103,15 +95,23 @@ gameLoop es gs timeStep = do
       playerMod = W.heroM $ getPlayer gameState
       levelDims = levelInfo gameState
       position = modelPosition activeKeys (renPos playerMod) timeStep
- -- check for collisions? + react
       model' = modifyModelPos playerMod position levelDims
                (camera engineState)
       cam' = calcCameraPosition (camera engineState) model'
              (getLevelSize gameState)
+      player = W.updatePlayer (getPlayer gameState) model' (calcSum cam' position)
+      -- quadtree + collisions + react
       correctCam = checkOffset (camera engineState) cam'
       tileslvl = changeTilesLvl gameState correctCam
       tiles = updateMap gameState tileslvl
-      world = changeWorld gameState correctCam model' (calcSum cam' position)
-  D.traceIO(show(W.pBox $ getPlayer gameState))
+      world = changeWorld gameState correctCam player
+  --D.traceIO(show(W.heroM $ getPlayer gameState))
   writeIORef gs (modifyGameState tiles world gameState)
   writeIORef es engineState{camera = cam'}
+
+--later: read from json config file maybe?
+initStateG :: GameState
+initStateG = GameState { level = 1
+                       , world = undefined
+                       , maps = []
+                       }
