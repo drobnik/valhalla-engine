@@ -29,64 +29,65 @@ type Bounds = ((Int32, Int32), (Int32, Int32)) --(x, y) (w, h)
 data Quad = TopQuadR | BottomQuadR | TopQuadL | BottomQuadL | None
 
 -- to limit collision detection
-data (Collidable a) => Quadtree a = Null | Quadtree Int [a] Bounds (Quadtree a)
+data (Collidable a) => Quadtree a = TEmpty Int Bounds
+                                  | TLeaf Int Bounds [a]
+                                  | TNode Int Bounds (Quadtree a)
                                            (Quadtree a) (Quadtree a) (Quadtree a)
                                            deriving Eq
 
 newQuadtree :: (Collidable a) => Int -> Bounds -> Quadtree a
-newQuadtree lvl bounds' = Quadtree lvl [] bounds' Null Null Null Null
+newQuadtree lvl bounds' = TEmpty lvl bounds'
 
-split :: (Collidable a) => Quadtree a -> Quadtree a
-split tree@(Quadtree lvl objs ((x, y), (boundW, boundH)) _ _ _ _) =
-  let subWidth = boundW `div` 2
-      subHeight = boundH `div` 2
-      node0 = newQuadtree (lvl + 1) ((x + subWidth, y), (subWidth, subHeight))
-      node1 = newQuadtree (lvl + 1) ((x, y + subHeight), (subWidth, subHeight))
-      node2 = newQuadtree (lvl + 1) ((x, y + subHeight)
-                                     , (subWidth, subHeight))
-      node3 = newQuadtree (lvl + 1) ((x + subWidth, y + subHeight)
-                                     , (subWidth, subHeight))
-  in Quadtree lvl objs ((x, y), (boundW, boundH)) node0 node1 node2 node3
+insert :: (Collidable a) => Int -> a -> Quadtree a -> Quadtree a
+insert lvl obj qtree = case qtree of
+  TNode lvl pos@((x, y), (w, h)) n0 n1 n2 n3
+    -> let
+    verMid = x + (w `div` 2)
+    horMid = y + (h `div` 2)
+    (BoundingBox (xA, yA) (xB, yB)) = boundingBox obj
+    node0 -- if it fits, go deeper and add a value
+      | xA < horMid && yB < verMid = insert (lvl + 1) obj n0
+      | otherwise = n0 -- leave it alone
+    node1
+      | xA > horMid && yB < verMid = insert (lvl + 1) obj n1
+      | otherwise = n1
+    node2
+      | xA < horMid && yB > verMid = insert (lvl + 1) obj n2
+      | otherwise = n2
+    node3
+      | xA > x && yB > y = insert (lvl + 1) obj n3
+    in TNode lvl pos node0 node1 node2 node3
 
--- determinate the which node the object belongs to
-getQuad :: (Collidable a) => a -> Bounds -> Quad
-getQuad obj ((bX, bY), (bW, bH))
-    | lefts = if topQuad then TopQuadL
-              else if bottomQuad then BottomQuadL
-                   else None
-    | x > verMidpoint = if topQuad then TopQuadR
-                        else if bottomQuad then BottomQuadR
-                             else None
-    | otherwise = None
-    where
-      (BoundingBox (x, y) (w, h)) = boundingBox obj
-      verMidpoint = bX + (bW `div` 2)
-      horMidpoint = bY + (bH `div` 2)
-      topQuad = (y < horMidpoint) && ((y + h) < horMidpoint)
-      bottomQuad = y > horMidpoint
-      lefts = (x < verMidpoint) && (x + w < verMidpoint)
+  TLeaf lvl pos objs
+    | lvl >= maxLvl
+      -> TLeaf lvl pos (obj : objs)
 
-{-
--- mapping function
-insert :: (Collidable a) => a -> Quadtree a -> Quadtree a
-insert obj t@(Quadtree lvl objList bounds n0 n1 n2 n3) =
-  if n0 /= Null
-  then
-    case getQuad obj bounds of
-      None -> insertTree obj t
-      TopQuadR -> insert obj n0
-      TopQuadL -> insert obj n1
-      BottomQuadL -> insert obj n2
-      BottomQuadR -> insert obj n3
-  else (Quadtree lvl objList bounds n0 n1 n2 n3)
+  TEmpty lvl pos@((x, y), (w, h))
+    | lvl >= maxLvl
+      -> TLeaf lvl pos [obj]
+    | otherwise -- there is still space for more - let's make a new node (split)
+      -> let newW = w `div` 2
+             newH = h `div` 2
+             verMid = x + (w `div` 2)
+             horMid = y + (h `div` 2)
+             newNode = TNode lvl ((x, y), (w, h)) (TEmpty (lvl + 1) ((x, y), (newW, newH)))
+               (TEmpty (lvl + 1) (((x + horMid), y), (newW, newH)))
+               (TEmpty (lvl + 1) ((x, (y + verMid)), (newW, newH)))
+               (TEmpty (lvl + 1) (((x + horMid), (y + verMid)), (newW, newH)))
+         in insert lvl obj newNode
 
-insertTree :: (Collidable a) => a -> Quadtree a -> Quadtree a
-insertTree obj t@(Quadtree lvl objList bounds n0 n1 n2 n3)
-  | (length (obj : objList) > maxObj) && lvl < maxLvl =
-      if n0 == Null then transTree obj (split t) else transTree obj t (obj:objList)
-  | otherwise = Quadtree lvl (obj : objList) bounds n0 n1 n2 n3
-
-transTree :: (Collidable a) => a -> Quadtree a -> [a] -> Quadtree a
-transTree obj t@(Quadtree lvl obList bounds n0 n1 n2 n3) (x:xs) = undefined
-transTree _ t [] = t
--}
+-- pass a bounding box of player and get other boxes in this quad
+retrieve :: (Collidable a) => a -> Quadtree a -> [a]
+retrieve obj tree = case tree of
+  TNode lvl pos@((x, y), (w, h)) n0 n1 n2 n3
+    -> let
+    verMid = x + (w `div` 2)
+    horMid = y + (h `div` 2)
+    (BoundingBox (xA, yA) (xB, yB)) = boundingBox obj
+    node
+      | xA < horMid && yB < verMid = n0
+      | xA > horMid && yB < verMid = n1
+      | xA < horMid && yB > verMid =  n2
+      | xA > x && yB > y = n3
+    in retrieve obj node
+  TLeaf lvl pos objs -> objs
