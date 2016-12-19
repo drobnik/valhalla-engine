@@ -157,7 +157,7 @@ makeTile kind' width height mapW mapH
   | otherwise = ((width + tileSInt), height, (Tile (tileSize, tileSize)
                                               ((fromIntegral width )
                                               ,(fromIntegral height)) kind'
-                                              undefined) (makeBox (width + tileSInt)
+                                              undefined) (makeBox width
                                                          height
                                                          tileSize tileSize))
 

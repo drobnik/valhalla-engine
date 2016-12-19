@@ -91,6 +91,10 @@ getLevelSize (GameState lvl _ maps) =
 calcSum :: Camera -> (CInt, CInt) -> (Double, Double)
 calcSum (SDL.Rectangle (P(V2 camX camY)) _) (x, y) =
   (fromIntegral(camX + x), fromIntegral (camY + y))
+-- temp
+getTile :: [(BoundingBox, BoxKind)] -> TileMap -> [Tile]
+getTile [] _ = [(Tile (0, 0) (0, 0) Sky undefined undefined)]
+getTile ((box, _):xs) (TileMap _ _ tiles _) = filter (\y -> tBox y == box) tiles
 
 gameLoop :: IORef EngineState -> IORef GameState -> Double -> IO ()
 gameLoop es gs timeStep = do
@@ -109,15 +113,15 @@ gameLoop es gs timeStep = do
       -- quadtree + collisions + react
       tree = insertElements (getBoundingBoxes gameState) (newQuadtree 1
                                                           (winSetup engineState))
-      collisions = checkCollisions ((W.pBox player), CollPlayer)--(W.playerBox world)
-                   (retrieve (W.playerBox world) tree) []
+      collisions = checkCollisions (W.pBox player) --(W.playerBox world)
+                   (retrieve (W.playerBox world) tree)
       correctCam = checkOffset (camera engineState) cam'
       tileslvl = changeTilesLvl gameState correctCam
       tiles = updateMap gameState tileslvl
       world = changeWorld gameState correctCam player
 
   D.traceIO (show collisions)
-  D.traceIO (show (W.pPos player))
+--  D.traceIO (show (getTile collisions (tileslvl !! 0)))
   writeIORef gs (modifyGameState tiles world gameState)
   writeIORef es engineState{camera = cam'}
 

@@ -7,3 +7,5 @@ dist/package.conf.inplace
 *.hs~
 \#*
 .#*
+TAGS
+tags

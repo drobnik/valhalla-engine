@@ -102,13 +102,11 @@ retrieve obj@(box', k) tree = case tree of
       | xA > horMid && yB < verMid = n1
       | xA < horMid && yB > verMid = n2
       | xA > horMid && yB > verMid = n3
+      | otherwise = TEmpty lvl pos
     in retrieve obj node
-  TLeaf lvl pos objs -> objs
+  TLeaf _ _ objs -> objs
+  TEmpty _ _ -> []
 
--- return a list with objects colliding with the player
-checkCollisions :: (BoundingBox, BoxKind) -> [(BoundingBox, BoxKind)]
-                -> [(BoundingBox, BoxKind)] -> [(BoundingBox, BoxKind)]
-checkCollisions (pBox, player) ((box, kind):xs) colls
-  | collide pBox box = D.trace("p:" ++ show pBox)(checkCollisions (pBox, player) xs ((box, kind):colls))
-  | otherwise = checkCollisions (pBox, player) xs colls
-checkCollisions  _ [] colls = colls
+checkCollisions :: BoundingBox -> [(BoundingBox, BoxKind)]
+                -> [(BoundingBox, BoxKind)]
+checkCollisions pBox = filter (\(box, _) -> collide pBox box )
