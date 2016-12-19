@@ -2,6 +2,8 @@ module Engine.Collision where
 
 import Data.Int(Int32(..))
 
+import qualified Debug.Trace as D
+
 maxObj :: Int
 maxObj = 10
 
@@ -25,8 +27,10 @@ makeBox x y w h = BoundingBox (x', y') ((x' + w), (y' + h))
         y' = fromIntegral y
 
 collide :: BoundingBox -> BoundingBox -> Bool
-collide (BoundingBox (lt1, top1) (rt1, bot1)) (BoundingBox (lt2, top2) (rt2, bot2)) =
-  (lt1 > rt2) && (lt2 > rt1) && (bot1 > top2) && (bot2 > top1)
+collide (BoundingBox (top1, left1) (bottom1, right1))
+  (BoundingBox (top2, left2) (bottom2, right2)) =
+  not ((left2 > right1) || (right2 < left1) || (top2 > bottom1)
+      || (bottom2 < top1))
 
 type Bounds = ((Int32, Int32), (Int32, Int32)) --(x, y) (w, h)
 data Quad = TopQuadR | BottomQuadR | TopQuadL | BottomQuadL | None
@@ -105,6 +109,6 @@ retrieve obj@(box', k) tree = case tree of
 checkCollisions :: (BoundingBox, BoxKind) -> [(BoundingBox, BoxKind)]
                 -> [(BoundingBox, BoxKind)] -> [(BoundingBox, BoxKind)]
 checkCollisions (pBox, player) ((box, kind):xs) colls
-  | collide pBox box = checkCollisions (pBox, player) xs ((box, kind):colls)
+  | collide pBox box = D.trace("p:" ++ show pBox)(checkCollisions (pBox, player) xs ((box, kind):colls))
   | otherwise = checkCollisions (pBox, player) xs colls
 checkCollisions  _ [] colls = colls

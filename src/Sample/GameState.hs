@@ -90,13 +90,14 @@ getLevelSize (GameState lvl _ maps) =
 
 calcSum :: Camera -> (CInt, CInt) -> (Double, Double)
 calcSum (SDL.Rectangle (P(V2 camX camY)) _) (x, y) =
-  (fromIntegral(camX + x + 1), fromIntegral (camY + y + 1))
+  (fromIntegral(camX + x), fromIntegral (camY + y))
 
 gameLoop :: IORef EngineState -> IORef GameState -> Double -> IO ()
 gameLoop es gs timeStep = do
   engineState <- readIORef es
   gameState <- readIORef gs
-  let activeKeys = keys engineState
+  let
+      activeKeys = keys engineState
       playerMod = W.heroM $ getPlayer gameState
       levelDims = levelInfo gameState
       position = modelPosition activeKeys (renPos playerMod) timeStep
@@ -107,15 +108,16 @@ gameLoop es gs timeStep = do
       player = W.updatePlayer (getPlayer gameState) model' (calcSum cam' position)
       -- quadtree + collisions + react
       tree = insertElements (getBoundingBoxes gameState) (newQuadtree 1
-                                                         (winSetup engineState))
-      collisions = checkCollisions (W.playerBox world)
+                                                          (winSetup engineState))
+      collisions = checkCollisions ((W.pBox player), CollPlayer)--(W.playerBox world)
                    (retrieve (W.playerBox world) tree) []
       correctCam = checkOffset (camera engineState) cam'
       tileslvl = changeTilesLvl gameState correctCam
       tiles = updateMap gameState tileslvl
       world = changeWorld gameState correctCam player
 
-  --D.traceIO (show (length collisions))
+  D.traceIO (show collisions)
+  D.traceIO (show (W.pPos player))
   writeIORef gs (modifyGameState tiles world gameState)
   writeIORef es engineState{camera = cam'}
 
