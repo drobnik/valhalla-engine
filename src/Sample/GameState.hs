@@ -115,7 +115,8 @@ gameLoop es gs timeStep = do
                                                           (winSetup engineState))
       (oldWorld, oldTiles) = getWorldAndTiles gameState
       (cam'', tiles', world') = W.runWorld activeKeys timeStep (camera engineState)
-                                oldTiles oldWorld
+                                oldTiles oldWorld (winSetup engineState)
+                                (getBoundingBoxes gameState)
 
       playerMod = W.heroM $ getPlayer gameState
       levelDims = levelInfo gameState

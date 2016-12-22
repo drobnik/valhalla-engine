@@ -11,13 +11,14 @@ import Engine.Consts
 -- datas and types used in this engine
 
 type ActiveKeys = Set SDL.Keycode
+type WinSetup = ((Int32, Int32), (Int32, Int32))
 
 data EngineState = EngineState
                  { keys :: ActiveKeys
                  , dt :: Double -- last delta time
                  , over :: Bool
                  , camera :: Camera
-                 , winSetup :: ((Int32, Int32), (Int32, Int32))
+                 , winSetup :: WinSetup
                  }
 
 closeGame :: IORef EngineState -> IO ()

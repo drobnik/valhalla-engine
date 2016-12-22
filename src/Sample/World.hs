@@ -13,6 +13,7 @@ import Engine.Collision (Collidable(..), makeBox, BoundingBox(BoundingBox)
                         , BoxKind(..))
 import Engine.Datas
 import Engine.Consts
+import Engine.Collision
 import GameData
 
 import qualified Debug.Trace as D
@@ -165,7 +166,12 @@ mapBox (Entity _ _ _ kind box _) = (box, check kind)
                     Gate -> CollGate
 
 runWorld :: ActiveKeys -> Double -> Camera -> TileMap -> World
-         -> (Camera, TileMap, World)
-runWorld keys' dt oldCam oldTiles oldWorld
+         -> WinSetup -> [(BoundingBox, BoxKind)] -> (Camera, TileMap, World)
+runWorld keys' dt oldCam oldTiles oldWorld winSet boundingBoxes
   | S.null keys' = (oldCam, oldTiles, oldWorld)
-  | otherwise = undefined
+  | otherwise = let
+      tree = insertElements boundingBoxes (newQuadtree 1 winSet)
+      updatedCam = undefined
+      updatedTileMap = undefined
+      updatedWorld = undefined
+      in (updatedCam, updatedTileMap, updatedWorld)
