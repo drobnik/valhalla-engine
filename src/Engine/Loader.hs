@@ -242,7 +242,8 @@ createUnit tex@(Texture _ (V2 w h)) kind value (x, y) = Entity (w', h') value
     bBox = makeBox (fromIntegral x) (fromIntegral y) w' h'
 
 loadPlayer :: SDL.Renderer -> Map UnitKind Texture -> W.Player
-loadPlayer ren textures = W.Player (w', h') 3 (10, 390) (makeBox 10 390 w' h') modP
+loadPlayer ren textures = W.Player (w', h') 3 (10, 390) (makeBox 10 390 w' h')
+                          modP False
   where tex@(Texture _ (V2 w h)) = fromMaybe (Texture undefined (V2 0 0))
                                    (getUnitTex textures PlayerU)
         modP = RenderModel (w, h) (CInt 10, CInt 390) undefined tex

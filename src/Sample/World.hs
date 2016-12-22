@@ -3,6 +3,7 @@ module World where
 import Data.Int
 import Data.Map (Map(..), fromList, elems)
 import qualified Data.Map as M (map)
+import qualified Data.Set as S (null)
 import Foreign.C.Types(CInt(..))
 import SDL(V2(..), Point(P))
 import qualified SDL (Rectangle(..))
@@ -31,6 +32,8 @@ data Player = Player
             , pPos :: (Double, Double)
             , pBox :: BoundingBox
             , heroM :: RenderModel
+            , harm :: Bool
+          --  , velocity :: (Float, Float) --velX, velY
             } deriving (Eq, Ord)
 
 instance Collidable Player where
@@ -86,8 +89,9 @@ renderLevels [] models = models
 getLvlModels :: Level -> [RenderModel]
 getLvlModels (Level cosMap _ _ _) = map World.model (elems cosMap)
 
+-- add update for velocity
 updatePlayer :: Player -> RenderModel -> (Double, Double) -> Player
-updatePlayer old@(Player (w, h) _ _ _ _) rm po@(x, y) = old
+updatePlayer old@(Player (w, h) _ _ _ _ _) rm po@(x, y) = old
                                                         {pPos = po
                                                         , heroM = rm
                                                         , pBox = makeBox
@@ -144,6 +148,15 @@ enBoxKind (e:es) (box, kind) = enBoxKind es ((box':box), (kind':kind))
   where (box', kind') = mapBox e
 enBoxKind [] boxes = boxes
 
+heal :: Player -> Player
+heal p@(Player _ l _ _ _ ha) = p{ lives = l + 1
+                                , harm = False
+                                }
+loseLife :: Player -> Player
+loseLife p@(Player _ lives' _ _ _ _) --later: check harm
+  | lives' > 0 = p {lives = lives' - 1}
+  | otherwise = p
+
 mapBox :: Entity -> (BoundingBox, BoxKind)
 mapBox (Entity _ _ _ kind box _) = (box, check kind)
   where check k = case k of
@@ -151,7 +164,8 @@ mapBox (Entity _ _ _ kind box _) = (box, check kind)
                     Collect -> CollCoin
                     Gate -> CollGate
 
-getSome :: (Collidable a) => Map Int Entity -> [a]
-getSome colls = undefined
-
-runWorld = undefined
+runWorld :: ActiveKeys -> Double -> Camera -> TileMap -> World
+         -> (Camera, TileMap, World)
+runWorld keys' dt oldCam oldTiles oldWorld
+  | S.null keys' = (oldCam, oldTiles, oldWorld)
+  | otherwise = undefined

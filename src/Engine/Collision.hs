@@ -13,6 +13,8 @@ maxLvl = 5
 data BoxKind = TileGround | TileLava | TileSpikes | CollCoin | CollHealth
              | CollGate | CollPlayer deriving (Show, Eq, Ord)
 
+data CorrPos = CLeft | CRight | CUp | CDown
+
 class Ord a => Collidable a where
   boundingBox :: a -> BoundingBox
 
@@ -29,8 +31,9 @@ makeBox x y w h = BoundingBox (x', y') ((x' + w), (y' + h))
 collide :: BoundingBox -> BoundingBox -> Bool
 collide (BoundingBox (top1, left1) (bottom1, right1))
   (BoundingBox (top2, left2) (bottom2, right2)) =
-  not ((left2 > right1) || (right2 < left1) || (top2 > bottom1)
-      || (bottom2 < top1))
+  (not ((left2 > right1) || (right2 < left1) || (top2 > bottom1)
+      || (bottom2 < top1)))
+
 
 type Bounds = ((Int32, Int32), (Int32, Int32)) --(x, y) (w, h)
 data Quad = TopQuadR | BottomQuadR | TopQuadL | BottomQuadL | None

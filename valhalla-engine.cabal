@@ -23,7 +23,7 @@ library
                      , Render.WindowManager, GameState, Engine.Consts
                      , Render.Utils, Render.Primitives, Engine.Loader
                      , Render.Model, GameData, World, Engine.Timer
-                     , Engine.Collision
+                     , Engine.Collision, Engine.Physics
                      , Paths_valhalla_engine
   exposed-modules:     GameMain
 
