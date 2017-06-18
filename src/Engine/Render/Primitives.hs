@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns #-}
 module Render.Primitives where
 
 
@@ -11,7 +12,7 @@ type Dimensions = (CInt, CInt)
 type CenterPosition = (CInt, CInt)
 
 data Texture = Texture
-             { tex :: SDL.Texture
+             { tex :: !SDL.Texture
              , size :: V2 CInt
              } deriving (Show, Eq, Ord)
 

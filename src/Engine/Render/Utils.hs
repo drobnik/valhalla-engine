@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns #-}
 module Render.Utils where
 
 import Data.Map
@@ -31,22 +32,22 @@ renderPipeline ren gs = do
     -- add constraints on rendering unseen parts of lvl
     mapM_ (renderModel ren) (getTilesModels gs)
     mapM_ (renderModel ren) (getWorldModels gs)
-    threadDelay 5000
+
     SDL.rendererDrawColor ren $= V4 10 10 10 255 --attention required
     SDL.present ren
 
 renderModel :: SDL.Renderer -> RenderModel -> IO ()
 renderModel render x = do
-  interpretComs render $ draw x
+  interpretComs render $ (draw $! x)
 
 interpretComs :: SDL.Renderer -> [RenderCom] -> IO ()
 interpretComs ren (x:xs) = do
   interpretCommand ren x
   interpretComs ren xs
-interpretComs ren [] = return ()
+interpretComs ren [] = return $! ()
 
 interpretCommand :: SDL.Renderer -> RenderCom -> IO ()
-interpretCommand ren x = case x of
+interpretCommand !ren !x = case x of
     RenderRectangle (w, h) (x1, y1) ->
       SDL.fillRect ren (Just $ SDL.Rectangle (P $ V2 x1 y1) (V2 w h))
     RenderColor colorF ->
@@ -55,6 +56,7 @@ interpretCommand ren x = case x of
       SDL.copy ren texture Nothing (Just (SDL.Rectangle (P $ V2 x y) (V2 w h)))
     RenderFrame (Texture texture _) sourceRec destiRect ->
       SDL.copy ren texture sourceRec destiRect
+
     RenderRotate angle -> undefined
     RenderTranslate (x, y) -> undefined
     RenderScale factor -> undefined

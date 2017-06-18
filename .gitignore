@@ -2,6 +2,7 @@
 dist
 dist/build
 dist/package.conf.inplace
+*.prof
 *.o
 *.hi
 *.hs~
@@ -9,3 +10,6 @@ dist/package.conf.inplace
 .#*
 TAGS
 tags
+*.aux
+*.hp
+*.ps

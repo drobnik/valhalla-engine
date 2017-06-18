@@ -37,7 +37,7 @@ library
 executable valhalla-engine-exe
   hs-source-dirs:      app
   main-is:             Main.hs
-  ghc-options:         -Wall
+  ghc-options:         -Wall -rtsopts -O2 -prof
   build-depends:       base
                      , valhalla-engine
   default-language:    Haskell2010

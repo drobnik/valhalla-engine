@@ -1,3 +1,5 @@
+{-# LANGUAGE BangPatterns #-}
+
 module GameState where
 
 import qualified Data.Map as Map
@@ -22,6 +24,7 @@ import qualified SDL (Rectangle(..))
 import SDL (Point(P), V2(..))
 import qualified SDL.Time (Timer(..))
 import qualified Debug.Trace as D
+import Control.Concurrent
 
 data GameState = GameState
                  { level :: Int
@@ -38,21 +41,23 @@ changeWorld (GameState lvl world _) cam player = W.updateWorld
                                                     world cam player lvl
 
 updateMap :: GameState -> [TileMap] -> [TileMap]
-updateMap (GameState lvl _ maps) tiles = take lvl maps ++ tiles
-                                           ++ drop (lvl+1) maps
+updateMap !(GameState lvl _ maps) !tiles = maps{-take lvl maps ++ tiles
+                                           ++ drop (lvl+1) maps-}
 
 changeTilesLvl :: GameState -> Camera -> [TileMap]
 changeTilesLvl (GameState lvl _ maps) cam = [changeTiles cam (maps !! lvl)]
 
+-- real disaster
 changeTiles :: Camera -> TileMap -> TileMap
-changeTiles cam tileMap = map''
-  where
+changeTiles !cam !tileMap = tileMap--map''
+{-  where
         (TileMap w h tiles' pat) = tileMap
         map'' = TileMap w h (map (changeTile cam) tiles') pat
+-}
 
 changeTile :: Camera -> Tile -> Tile
 changeTile  (SDL.Rectangle (P(V2 camX camY)) _)
-  (Tile d p k rm@(RenderModel _ (x, y) _ _ _ instr) box) =
+  (Tile d p k !rm@(RenderModel _ (x, y) _ _ _ instr) !box) =
    Tile { GD.dim = d, GD.pos = p, kind = k, model = rm
                                                     { RM.pos = (CInt x', CInt y')
                                                     , renderInstr = modifyPos
@@ -134,14 +139,14 @@ gameLoop es gs timeStep = do
       tileslvl = changeTilesLvl gameState correctCam
       tiles = updateMap gameState tileslvl
       world = changeWorld gameState correctCam player
-
+  threadDelay 8000
+  D.traceIO (show $ keys engineState)
 --  dist (W.pBox player) collisions
-  D.traceIO (show collisions)
+--  D.traceIO (show collisions)
 --  D.traceIO (show (calc (W.pPos $ getPlayer gameState) (W.pPos player)))
 --  D.traceIO (show (getTile collisions (tileslvl !! 0)))
   writeIORef gs (modifyGameState tiles world gameState)
   writeIORef es engineState{camera = cam'}
-
 --later: read from json config file maybe?
 initStateG :: GameState
 initStateG = GameState

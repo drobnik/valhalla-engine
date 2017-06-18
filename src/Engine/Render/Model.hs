@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns #-}
 module Render.Model where
 
 import Render.Primitives
@@ -82,7 +83,7 @@ addCameraOffset (RenderModel d pos'@(rX, rY) path' tex col ren)
 
 --- moze wybuchnac
 modifyPos :: [RenderCom] -> [RenderCom] -> CenterPosition -> [RenderCom]
-modifyPos (x:xs) renAcc pos'@(xp, yp) = case x of
+modifyPos (x:xs) !renAcc pos'@(xp, yp) = case x of
   RenderRectangle dim pos -> renAcc ++ [(RenderRectangle dim pos')] ++ xs
   RenderTexture tex pos -> renAcc ++ [(RenderTexture tex pos')] ++ xs
 
