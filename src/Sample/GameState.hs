@@ -158,8 +158,6 @@ gameLoop es gs timeStep = do
   threadDelay 8000
 --  D.traceIO(show $ hasOffsetChanged correctCam)
 --  D.traceIO(show correctCam)
-{-  D.traceIO(show $ areTheSame (tiles tileslvl) (tiles $ fromJust $ Map.lookup
-                                        (level gameState)(maps gameState)))-}
 --  dist (W.pBox player) collisions
 --  D.traceIO (show collisions)
 --  D.traceIO (show (calc (W.pPos $ getPlayer gameState) (W.pPos player)))
@@ -174,6 +172,6 @@ initStateG = GameState
              , maps = Map.empty
              }
 
-areTheSame :: [Tile] -> [Tile] -> Bool
-areTheSame (x:xs) (y:ys) = if x == y then areTheSame xs ys else False
-areTheSame [] ys = True
+areTheSame :: GameState -> Int
+areTheSame gs = Map.size (W.collectables
+                          $ fromJust $ Map.lookup 1 (W.level (world gs)))

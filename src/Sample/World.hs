@@ -3,7 +3,7 @@ module World where
 import Data.Int
 import Data.Map (Map(..), fromList, elems)
 import qualified Data.Map.Strict as Map (map, Map(..), lookup,
-                                         insert, empty, size)
+                                         insert, empty, size, singleton)
 import qualified Data.Set as S (null)
 import Foreign.C.Types(CInt(..))
 import SDL(V2(..), Point(P))
@@ -65,7 +65,7 @@ instance Collidable Entity where
 
 setupWorld :: [Entity] -> Player -> World
 setupWorld entities p = World
-                      { level = Map.insert 1 (sampleLevel entities) Map.empty
+                      { level = Map.singleton 1 (sampleLevel entities)
                       , playerLives = 3
                       , player = p
                       , wholeScore = 0
@@ -84,7 +84,7 @@ renderWorld (World levels' _ player' _) = renderLevels levels' 1
                                                       [heroM player']
 
 renderLevels :: Map Int Level -> Int -> [RenderModel] -> [RenderModel]
-renderLevels levels lvlInc models = if lvlInc < Map.size levels
+renderLevels levels lvlInc models = if lvlInc <= Map.size levels
                                     then
                                       renderLevels levels (lvlInc+1) (mod ++ models)
                                     else
@@ -112,14 +112,14 @@ updateWorld (World lvls liv p scr) cam play num = (World lvls' liv play scr)
     lvls' = updateLevels lvls updated num
 
 updateLevels :: Map Int Level -> Level -> Int -> Map Int Level
-updateLevels lvlmaps upLvl num = Map.insert (num-1) upLvl lvlmaps --or num?
+updateLevels lvlmaps upLvl num = Map.insert num upLvl lvlmaps --or num?
 
   {-take (num-1) lvlmaps ++ upLvl ++ drop (num+1) lvlmaps-}
 
 changeLevel :: Map Int Level -> Camera -> Int -> Level
 changeLevel level cam lvl = changeUnits cam lvlForUpdate
   where lvlForUpdate = case Map.lookup lvl level of
-          Just lvl -> lvl
+          Just lvl' -> lvl'
           Nothing -> error "Contents for this level not found!"
 
 changeUnits :: Camera -> Level -> Level
