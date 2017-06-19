@@ -2,7 +2,7 @@
 
 module GameState where
 
-import qualified Data.Map as Map
+import qualified Data.Map.Strict as Map
 import Data.Map (Map(..))
 import Data.Int(Int32(..))
 import Render.Model (modifyModelPos, renPos
@@ -15,6 +15,7 @@ import Engine.Datas
 import Engine.Timer
 import Engine.Collision
 import Engine.Consts
+import Data.Maybe
 import Data.IORef
 import Foreign.C.Types (CInt(..))
 import GameData
@@ -29,31 +30,32 @@ import Control.Concurrent
 data GameState = GameState
                  { level :: Int
                  , world :: W.World
-                 , maps :: [TileMap] -- level maps
+                 , maps :: Map Int TileMap -- lvl -> map
                  }
 
 getTilesModels :: GameState -> [RenderModel]
-getTilesModels (GameState lvl _ maps) = getModels (tiles (maps !! lvl)) []
+getTilesModels (GameState lvl _ maps) = case Map.lookup lvl maps of
+  Just tileMap -> getModels (tiles tileMap) []
+  Nothing -> error "Level map not found!"
 
 --change
 changeWorld :: GameState -> Camera -> W.Player -> W.World
 changeWorld (GameState lvl world _) cam player = W.updateWorld
                                                     world cam player lvl
 
-updateMap :: GameState -> [TileMap] -> [TileMap]
-updateMap !(GameState lvl _ maps) !tiles = maps{-take lvl maps ++ tiles
-                                           ++ drop (lvl+1) maps-}
+updateMap :: GameState -> TileMap -> Map Int TileMap
+updateMap !(GameState lvl _ maps) !tiles = Map.insert lvl tiles maps
 
-changeTilesLvl :: GameState -> Camera -> [TileMap]
-changeTilesLvl (GameState lvl _ maps) cam = [changeTiles cam (maps !! lvl)]
+changeTilesLvl :: GameState -> Camera -> TileMap
+changeTilesLvl (GameState lvl _ maps) cam = case Map.lookup lvl maps of
+  Just tileMap -> changeTiles cam tileMap
+  Nothing -> error "Level map not found!"
 
--- real disaster
 changeTiles :: Camera -> TileMap -> TileMap
-changeTiles !cam !tileMap = tileMap--map''
-{-  where
+changeTiles !cam !tileMap = map''
+  where
         (TileMap w h tiles' pat) = tileMap
         map'' = TileMap w h (map (changeTile cam) tiles') pat
--}
 
 changeTile :: Camera -> Tile -> Tile
 changeTile  (SDL.Rectangle (P(V2 camX camY)) _)
@@ -69,28 +71,33 @@ getWorldModels :: GameState -> [RenderModel]
 getWorldModels (GameState _ wor _) = W.renderWorld wor
 
 getBoundingBoxes :: GameState -> [(BoundingBox, BoxKind)]
-getBoundingBoxes (GameState lvl world' maps') = W.getEntitiesBoxes world' lvl
-                                                ++ (getTilesBox (maps' !! lvl))
+getBoundingBoxes (GameState lvl world' maps') = case Map.lookup lvl maps' of
+  Just tileMap -> W.getEntitiesBoxes world' lvl ++ getTilesBox tileMap
+  Nothing -> error "Level map not found!"
 
 getPlayer :: GameState -> W.Player
 getPlayer (GameState _ world _) = W.player world
 
 levelInfo :: GameState -> (Int, Int)
 levelInfo (GameState lvl _ maps) = (w, h)
-  where (TileMap w h _ _) = maps !! lvl
+  where (TileMap w h _ _) = case Map.lookup lvl maps of
+          Just tileMap -> tileMap
+          Nothing -> error "Level map not found!"
 
 getModelKey :: Int -> Map Int RenderModel-> RenderModel
 getModelKey n modMap = case Map.lookup n modMap of
   Just m -> m
   Nothing -> dummyModel
 
-modifyGameState :: [TileMap] -> W.World -> GameState -> GameState
-modifyGameState  tileCam wor' (GameState lvl _ _) =
-  GameState{ level = lvl, world = wor', maps = tileCam}
+modifyGameState :: Map Int TileMap -> W.World -> GameState -> GameState
+modifyGameState  correctedTiles wor' (GameState lvl _ _) =
+  GameState{ level = lvl, world = wor', maps = correctedTiles}
 
 getLevelSize :: GameState -> (CInt, CInt)
 getLevelSize (GameState lvl _ maps) =
-  let (TileMap w h tiles' tilesP) = maps !! lvl
+  let (TileMap w h tiles' tilesP) = case Map.lookup lvl maps of
+        Just tileMap -> tileMap
+        Nothing -> error "Level map not found!"
       in (CInt(fromIntegral w), CInt (fromIntegral h))
 
 calcSum :: Camera -> (CInt, CInt) -> (Double, Double)
@@ -98,7 +105,10 @@ calcSum (SDL.Rectangle (P(V2 camX camY)) _) (x, y) =
   (fromIntegral(camX + x), fromIntegral (camY + y))
 
 getWorldAndTiles :: GameState -> (W.World, TileMap)
-getWorldAndTiles (GameState lvl world tilemaps) = (world, (tilemaps !! (lvl - 1)))
+getWorldAndTiles (GameState lvl world tileMaps) = (world, tileMap)
+  where tileMap = case Map.lookup (lvl-1) tileMaps of
+          Just tMap -> tMap
+          Nothing -> error "Level map not found!"
 
 getTile :: [(BoundingBox, BoxKind)] -> TileMap -> [Tile]
 getTile [] _ = [(Tile (0, 0) (0, 0) Sky undefined undefined)]
@@ -137,20 +147,25 @@ gameLoop es gs timeStep = do
                    (retrieve (W.playerBox world) tree)
       correctCam = checkOffset (camera engineState) cam'
       tileslvl = changeTilesLvl gameState correctCam
-      tiles = updateMap gameState tileslvl
+      tileMaps = updateMap gameState tileslvl
       world = changeWorld gameState correctCam player
   threadDelay 8000
-  D.traceIO (show $ keys engineState)
+  D.traceIO(show $ areTheSame (tiles tileslvl) (tiles $ fromJust $ Map.lookup
+                                        (level gameState)(maps gameState)))
 --  dist (W.pBox player) collisions
 --  D.traceIO (show collisions)
 --  D.traceIO (show (calc (W.pPos $ getPlayer gameState) (W.pPos player)))
 --  D.traceIO (show (getTile collisions (tileslvl !! 0)))
-  writeIORef gs (modifyGameState tiles world gameState)
+  writeIORef gs (modifyGameState tileMaps world gameState)
   writeIORef es engineState{camera = cam'}
 --later: read from json config file maybe?
 initStateG :: GameState
 initStateG = GameState
              { level = 1
              , world = undefined
-             , maps = []
+             , maps = Map.empty
              }
+
+areTheSame :: [Tile] -> [Tile] -> Bool
+areTheSame (x:xs) (y:ys) = if x == y then areTheSame xs ys else False
+areTheSame [] ys = True

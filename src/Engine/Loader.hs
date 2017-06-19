@@ -3,7 +3,7 @@ module Engine.Loader where
 
 import Control.Monad
 import Data.Map (Map(..))
-import qualified Data.Map as M
+import qualified Data.Map.Strict as Map
 import Data.IORef
 import Data.Maybe
 import Render.Model (RenderModel(..))
@@ -59,7 +59,7 @@ loadGame ren gs = do
   let loadMaps' = loadMaps mapData []
       loadUnits' = loadUnits unitData ren unitTexs []
       player = loadPlayer ren unitTexs
-  loadMaps'' <- loadMapsTex ren loadMaps' []
+  loadMaps'' <- loadMapsTex ren 1 loadMaps' Map.empty
 
   writeIORef gs (gameState{ maps = loadMaps''
                           , world = W.setupWorld loadUnits' player
@@ -69,8 +69,8 @@ loadModel :: (Int, RenderModel) -> Map FilePath Texture -> SDL.Renderer
           -> IO ((Int, RenderModel), (Map FilePath Texture))
 loadModel (i, rm@(RenderModel _ pos path' tex _ instruct)) texMap ren
   | null path' = return ((i, rm), texMap)
-  | path' `M.member` texMap = do
-      let tex' = fromMaybe noTexture (M.lookup path' texMap)
+  | path' `Map.member` texMap = do
+      let tex' = fromMaybe noTexture (Map.lookup path' texMap)
       return ((i, rm
                   { texture = tex'
                   , renderInstr = instruct --later: indicate animated RM
@@ -78,7 +78,7 @@ loadModel (i, rm@(RenderModel _ pos path' tex _ instruct)) texMap ren
                   }) , texMap)
   | otherwise = do
       tex' <- loadTexture ren path'
-      let texMap' = M.insert path' tex' texMap
+      let texMap' = Map.insert path' tex' texMap
       return ((i, rm
                   { texture = tex'
                   , renderInstr = instruct
@@ -161,11 +161,12 @@ makeTile kind' width height mapW mapH
                                                          height
                                                          tileSize tileSize))
 
-loadMapsTex :: SDL.Renderer -> [TileMap] -> [TileMap] -> IO [TileMap]
-loadMapsTex ren (x:xs) dist = do
+loadMapsTex :: SDL.Renderer -> Int -> [TileMap] ->
+               Map Int TileMap -> IO (Map Int TileMap)
+loadMapsTex ren lvl (x:xs) partialMaps = do
   mapTes <- mapTex ren x
-  loadMapsTex ren xs (mapTes:dist)
-loadMapsTex ren [] dist = return dist
+  loadMapsTex ren (lvl+1) xs (Map.insert lvl mapTes partialMaps)
+loadMapsTex ren lvl [] dist = return dist
 
 mapTex :: SDL.Renderer -> TileMap -> IO (TileMap)
 mapTex ren t@(TileMap _ _ tiles tilesPath) = do
@@ -208,9 +209,9 @@ loadUnitTex ren = do
   gateTex <- loadTexture ren (unitPath GateU)
   healthTex <- loadTexture ren (unitPath HealthUpU)
   playerTex <- loadTexture ren (unitPath PlayerU)
-  return ((M.insert CoinU coinTex) $ (M.insert GateU gateTex)
-    $ (M.insert PlayerU playerTex) $ (M.insert HealthUpU healthTex)
-    $ M.empty)
+  return ((Map.insert CoinU coinTex) $ (Map.insert GateU gateTex)
+    $ (Map.insert PlayerU playerTex) $ (Map.insert HealthUpU healthTex)
+    $ Map.empty)
 
 -- player0 390
 -- load dimensions from texture
@@ -252,4 +253,4 @@ loadPlayer ren textures = W.Player (w', h') 3 (10, 390) (makeBox 10 390 w' h')
         h' = fromIntegral h
 
 getUnitTex :: Map UnitKind Texture -> UnitKind -> Maybe Texture
-getUnitTex units kind = M.lookup kind units
+getUnitTex units kind = Map.lookup kind units

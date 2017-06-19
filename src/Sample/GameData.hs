@@ -34,6 +34,8 @@ instance Collidable Tile where
 instance Show Tile where
   show (Tile dim pos kind _ _) = "Tile| dimens:" ++ show dim ++ ", pos:"
                              ++ show pos ++ ", kind:" ++ show kind ++ "\t"
+
+
 data TileMap = TileMap
                { width :: Int
                , height :: Int
