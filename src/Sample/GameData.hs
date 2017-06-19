@@ -43,7 +43,13 @@ data TileMap = TileMap
                , height :: Int
                , tiles :: [Tile]
                , tilesPath :: FilePath
-               }
+               } deriving(Eq)
+
+isEmpty :: TileMap -> Bool --maybe a new typeclass /later/
+isEmpty s = s == empty
+
+empty :: TileMap
+empty = TileMap{width=0, height=0, tiles=[], tilesPath=""}
 
 instance Show TileMap where
   show (TileMap _ _ tiles _ ) = show tiles

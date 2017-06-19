@@ -9,7 +9,7 @@ import Render.Model (modifyModelPos, renPos
                     , RenderModel(..), dummyModel
                     ,  addCameraOffset
                     , calcCameraPosition, Camera, modifyPos
-                    , checkOffset)
+                    , checkOffset, hasOffsetChanged)
 import qualified Render.Model as RM (pos, dim)
 import Engine.Datas
 import Engine.Timer
@@ -44,19 +44,24 @@ changeWorld (GameState lvl world _) cam player = W.updateWorld
                                                     world cam player lvl
 
 updateMap :: GameState -> TileMap -> Map Int TileMap
-updateMap !(GameState lvl _ maps) _{-!tiles-} = Map.insert lvl tiles maps
-  where tiles = fromJust $ Map.lookup lvl maps
+updateMap !(GameState lvl _ maps) !tiles = if isEmpty tiles
+                                           then maps
+                                           else
+                                             Map.insert lvl tiles maps
+--  where tiles = fromJust $ Map.lookup lvl maps
 
 changeTilesLvl :: GameState -> Camera -> TileMap
-changeTilesLvl (GameState lvl _ maps) cam = case Map.lookup lvl maps of
-  Just tileMap -> changeTiles cam tileMap
-  Nothing -> error "Level map not found!"
+changeTilesLvl (GameState lvl _ maps) cam = if hasOffsetChanged cam
+                                            then
+                                              case Map.lookup lvl maps of
+                                                Just tileMap -> changeTiles cam tileMap
+                                                Nothing -> error "Level map not found!"
+                                            else empty
 
+-- x2
 changeTiles :: Camera -> TileMap -> TileMap
-changeTiles !cam !tileMap = map''
-  where
-        (TileMap w h tiles' pat) = tileMap
-        map'' = TileMap w h (map (changeTile cam) tiles') pat
+changeTiles !cam (TileMap w h tiles path) = TileMap w h (map (changeTile cam) tiles)
+                                           path
 
 changeTile :: Camera -> Tile -> Tile
 changeTile  (SDL.Rectangle (P(V2 camX camY)) _)
@@ -151,6 +156,8 @@ gameLoop es gs timeStep = do
       tileMaps = updateMap gameState tileslvl
       world = changeWorld gameState correctCam player
   threadDelay 8000
+--  D.traceIO(show $ hasOffsetChanged correctCam)
+--  D.traceIO(show correctCam)
 {-  D.traceIO(show $ areTheSame (tiles tileslvl) (tiles $ fromJust $ Map.lookup
                                         (level gameState)(maps gameState)))-}
 --  dist (W.pBox player) collisions

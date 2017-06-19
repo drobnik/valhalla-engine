@@ -12,6 +12,10 @@ import qualified Debug.Trace as D
 
 type Camera = SDL.Rectangle CInt
 
+
+hasOffsetChanged :: SDL.Rectangle CInt -> Bool
+hasOffsetChanged (SDL.Rectangle (P (V2 x y)) _) = x /= 0 || y /= 0
+
 -- wywalic rozowy z sampla
 data RenderModel = RenderModel
                  { dim :: Dimensions
@@ -83,7 +87,7 @@ addCameraOffset (RenderModel d pos'@(rX, rY) path' tex col ren)
 
 --- moze wybuchnac
 modifyPos :: [RenderCom] -> [RenderCom] -> CenterPosition -> [RenderCom]
-modifyPos (x:xs) !renAcc pos'@(xp, yp) = case x of
+modifyPos !(x:xs) !renAcc pos'@(xp, yp) = case x of
   RenderRectangle dim pos -> renAcc ++ [(RenderRectangle dim pos')] ++ xs
   RenderTexture tex pos -> renAcc ++ [(RenderTexture tex pos')] ++ xs
 
