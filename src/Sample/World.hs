@@ -79,8 +79,8 @@ sampleLevel entities = Level
                        , isGateOpen = False
                        }
 
-renderWorld :: World -> [RenderModel]
-renderWorld (World levels' _ player' _) = renderLevels levels' 1
+renderWorld :: World -> Int -> [RenderModel]
+renderWorld (World levels' _ player' _) lvl = renderLevels levels' lvl
                                                       [heroM player']
 
 renderLevels :: Map Int Level -> Int -> [RenderModel] -> [RenderModel]
@@ -113,8 +113,6 @@ updateWorld (World lvls liv p scr) cam play num = (World lvls' liv play scr)
 
 updateLevels :: Map Int Level -> Level -> Int -> Map Int Level
 updateLevels lvlmaps upLvl num = Map.insert num upLvl lvlmaps --or num?
-
-  {-take (num-1) lvlmaps ++ upLvl ++ drop (num+1) lvlmaps-}
 
 changeLevel :: Map Int Level -> Camera -> Int -> Level
 changeLevel level cam lvl = changeUnits cam lvlForUpdate

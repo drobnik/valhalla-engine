@@ -48,7 +48,6 @@ updateMap !(GameState lvl _ maps) !tiles = if isEmpty tiles
                                            then maps
                                            else
                                              Map.insert lvl tiles maps
---  where tiles = fromJust $ Map.lookup lvl maps
 
 changeTilesLvl :: GameState -> Camera -> TileMap
 changeTilesLvl (GameState lvl _ maps) cam = if hasOffsetChanged cam
@@ -58,7 +57,6 @@ changeTilesLvl (GameState lvl _ maps) cam = if hasOffsetChanged cam
                                                 Nothing -> error "Level map not found!"
                                             else empty
 
--- x2
 changeTiles :: Camera -> TileMap -> TileMap
 changeTiles !cam (TileMap w h tiles path) = TileMap w h (map (changeTile cam) tiles)
                                            path
@@ -74,7 +72,7 @@ changeTile  (SDL.Rectangle (P(V2 camX camY)) _)
   where (x', y') = (fromIntegral (x - camX), fromIntegral (y - camY))
 
 getWorldModels :: GameState -> [RenderModel]
-getWorldModels (GameState _ wor _) = W.renderWorld wor
+getWorldModels (GameState lvl wor _) = W.renderWorld wor lvl
 
 getBoundingBoxes :: GameState -> [(BoundingBox, BoxKind)]
 getBoundingBoxes (GameState lvl world' maps') = case Map.lookup lvl maps' of
@@ -157,13 +155,13 @@ gameLoop es gs timeStep = do
       world = changeWorld gameState correctCam player
   threadDelay 8000
 --  D.traceIO(show $ hasOffsetChanged correctCam)
---  D.traceIO(show correctCam)
 --  dist (W.pBox player) collisions
 --  D.traceIO (show collisions)
 --  D.traceIO (show (calc (W.pPos $ getPlayer gameState) (W.pPos player)))
 --  D.traceIO (show (getTile collisions (tileslvl !! 0)))
   writeIORef gs (modifyGameState tileMaps world gameState)
   writeIORef es engineState{camera = cam'}
+
 --later: read from json config file maybe?
 initStateG :: GameState
 initStateG = GameState
@@ -171,7 +169,3 @@ initStateG = GameState
              , world = undefined
              , maps = Map.empty
              }
-
-areTheSame :: GameState -> Int
-areTheSame gs = Map.size (W.collectables
-                          $ fromJust $ Map.lookup 1 (W.level (world gs)))
