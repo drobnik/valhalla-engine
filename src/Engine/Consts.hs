@@ -27,7 +27,7 @@ tileSInt :: Int
 tileSInt = fromIntegral tileSize
 
 pVelo :: Double
-pVelo = 740
+pVelo = 1040
 
 -- | A fixed timestep.
 targetElapsedTime :: Double

@@ -24,7 +24,7 @@ renderInit :: SDL.Window -> IO SDL.Renderer
 renderInit win = do
     renderer <- SDL.createRenderer win (-1) SDL.defaultRenderer
     SDL.rendererDrawColor renderer $= V4 0 0 0 maxBound
-    return renderer
+    return $! renderer
 
 renderPipeline :: SDL.Renderer -> GameState -> IO ()
 renderPipeline ren gs = do
@@ -34,14 +34,14 @@ renderPipeline ren gs = do
     mapM_ (renderModel ren) (getWorldModels gs)
 
     SDL.rendererDrawColor ren $= V4 10 10 10 255 --attention required
-    SDL.present ren
+    SDL.present $! ren
 
 renderModel :: SDL.Renderer -> RenderModel -> IO ()
-renderModel render x = do
-  interpretComs render $ (draw $! x)
+renderModel render !x = do
+  interpretComs render $ (draw x)
 
 interpretComs :: SDL.Renderer -> [RenderCom] -> IO ()
-interpretComs ren (x:xs) = do
+interpretComs ren !(x:xs) = do
   interpretCommand ren x
   interpretComs ren xs
 interpretComs ren [] = return $! ()

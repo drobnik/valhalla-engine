@@ -2,7 +2,8 @@ module World where
 
 import Data.Int
 import Data.Map (Map(..), fromList, elems)
-import qualified Data.Map as M (map)
+import qualified Data.Map.Strict as Map (map, Map(..), lookup,
+                                         insert, empty, size)
 import qualified Data.Set as S (null)
 import Foreign.C.Types(CInt(..))
 import SDL(V2(..), Point(P))
@@ -18,7 +19,7 @@ import GameData
 
 import qualified Debug.Trace as D
 data World = World
-           { level :: [Level]
+           { level :: Map Int Level
            , playerLives :: Int
            , player :: Player --play
            , wholeScore :: Int
@@ -64,7 +65,7 @@ instance Collidable Entity where
 
 setupWorld :: [Entity] -> Player -> World
 setupWorld entities p = World
-                      { level = [sampleLevel entities]
+                      { level = Map.insert 1 (sampleLevel entities) Map.empty
                       , playerLives = 3
                       , player = p
                       , wholeScore = 0
@@ -79,13 +80,19 @@ sampleLevel entities = Level
                        }
 
 renderWorld :: World -> [RenderModel]
-renderWorld (World levels' _ player' _) = renderLevels levels'
+renderWorld (World levels' _ player' _) = renderLevels levels' 1
                                                       [heroM player']
 
-renderLevels :: [Level] -> [RenderModel] -> [RenderModel]
-renderLevels (x:xs) models = renderLevels xs (mod ++ models)
-  where mod = getLvlModels x
-renderLevels [] models = models
+renderLevels :: Map Int Level -> Int -> [RenderModel] -> [RenderModel]
+renderLevels levels lvlInc models = if lvlInc < Map.size levels
+                                    then
+                                      renderLevels levels (lvlInc+1) (mod ++ models)
+                                    else
+                                      models
+  where mod = getLvlModels lvlM
+        lvlM = case Map.lookup lvlInc levels of
+                 Just lvl' -> lvl'
+                 Nothing -> error "Models for the level not found"
 
 getLvlModels :: Level -> [RenderModel]
 getLvlModels (Level cosMap _ _ _) = map World.model (elems cosMap)
@@ -104,12 +111,16 @@ updateWorld (World lvls liv p scr) cam play num = (World lvls' liv play scr)
     updated = changeLevel lvls cam num
     lvls' = updateLevels lvls updated num
 
-updateLevels :: [Level] -> [Level] -> Int -> [Level]
-updateLevels lvlmaps upLvl num = take (num-1) lvlmaps ++ upLvl
-                                 ++ drop (num+1) lvlmaps
+updateLevels :: Map Int Level -> Level -> Int -> Map Int Level
+updateLevels lvlmaps upLvl num = Map.insert (num-1) upLvl lvlmaps --or num?
 
-changeLevel :: [Level] -> Camera -> Int -> [Level]
-changeLevel level cam lvl = [changeUnits cam (level !! (lvl - 1))]
+  {-take (num-1) lvlmaps ++ upLvl ++ drop (num+1) lvlmaps-}
+
+changeLevel :: Map Int Level -> Camera -> Int -> Level
+changeLevel level cam lvl = changeUnits cam lvlForUpdate
+  where lvlForUpdate = case Map.lookup lvl level of
+          Just lvl -> lvl
+          Nothing -> error "Contents for this level not found!"
 
 changeUnits :: Camera -> Level -> Level
 changeUnits cam (Level coll se' toEnd isOpen) = Level{ collectables =
@@ -122,7 +133,7 @@ changeUnits cam (Level coll se' toEnd isOpen) = Level{ collectables =
 
 modifyEntities :: Camera -> Map Int (Entity)
                -> Map Int (Entity)
-modifyEntities cam collectables = M.map (changeEnt cam) collectables
+modifyEntities cam collectables = Map.map (changeEnt cam) collectables
 
 changeEnt :: Camera -> Entity -> Entity
 changeEnt (SDL.Rectangle (P(V2 camX camY)) s) (Entity d val p k bbox
@@ -137,7 +148,10 @@ changeEnt (SDL.Rectangle (P(V2 camX camY)) s) (Entity d val p k bbox
 
 getEntitiesBoxes ::  World -> Int -> [(BoundingBox, BoxKind)]
 getEntitiesBoxes (World levels _ _ _) lvl = zip boxes kinds
-  where entities' = elems (collectables $ levels !! (lvl - 1))
+  where entities' = elems (collectables level)
+        level = case Map.lookup (lvl-1) levels of
+          Just level' -> level'
+          Nothing -> error "Level with such index not found"
         (boxes, kinds) = enBoxKind entities' ([], [])
 
 playerBox :: World -> (BoundingBox, BoxKind)

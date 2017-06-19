@@ -44,7 +44,8 @@ changeWorld (GameState lvl world _) cam player = W.updateWorld
                                                     world cam player lvl
 
 updateMap :: GameState -> TileMap -> Map Int TileMap
-updateMap !(GameState lvl _ maps) !tiles = Map.insert lvl tiles maps
+updateMap !(GameState lvl _ maps) _{-!tiles-} = Map.insert lvl tiles maps
+  where tiles = fromJust $ Map.lookup lvl maps
 
 changeTilesLvl :: GameState -> Camera -> TileMap
 changeTilesLvl (GameState lvl _ maps) cam = case Map.lookup lvl maps of
@@ -150,8 +151,8 @@ gameLoop es gs timeStep = do
       tileMaps = updateMap gameState tileslvl
       world = changeWorld gameState correctCam player
   threadDelay 8000
-  D.traceIO(show $ areTheSame (tiles tileslvl) (tiles $ fromJust $ Map.lookup
-                                        (level gameState)(maps gameState)))
+{-  D.traceIO(show $ areTheSame (tiles tileslvl) (tiles $ fromJust $ Map.lookup
+                                        (level gameState)(maps gameState)))-}
 --  dist (W.pBox player) collisions
 --  D.traceIO (show collisions)
 --  D.traceIO (show (calc (W.pPos $ getPlayer gameState) (W.pPos player)))

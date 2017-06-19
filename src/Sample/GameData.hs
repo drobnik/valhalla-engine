@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns #-}
 module GameData where
 
 import SDL (V2 (..), Point(..), Rectangle(..))
@@ -26,7 +27,7 @@ data Tile = Tile
             , kind :: TileKind
             , model :: RenderModel
             , tBox :: BoundingBox
-            } deriving (Eq, Ord)
+            } deriving (Ord)
 
 instance Collidable Tile where
   boundingBox = tBox
@@ -34,7 +35,8 @@ instance Collidable Tile where
 instance Show Tile where
   show (Tile dim pos kind _ _) = "Tile| dimens:" ++ show dim ++ ", pos:"
                              ++ show pos ++ ", kind:" ++ show kind ++ "\t"
-
+instance Eq Tile where
+  x == y = GameData.pos x == GameData.pos y
 
 data TileMap = TileMap
                { width :: Int
@@ -116,7 +118,7 @@ transDirection (x, y) [] _ = (CInt(floor x), CInt (floor y))
 
 -- TEMP SECTION
 modelPosition :: ActiveKeys -> CenterPosition -> Double -> CenterPosition
-modelPosition keys (u,i) dt = calcPos (u, i) (transDirection (0.0, 0.0) dirs dt)
+modelPosition keys !(u,i) dt = calcPos (u, i) (transDirection (0.0, 0.0) dirs dt)
   where
     dirs = transformSet keys transformKeys
-    calcPos (xp, yp) (x', y') = ((xp + x'), (yp + y'))
+    calcPos !(xp, yp) !(x', y') = ((xp + x'), (yp + y'))
