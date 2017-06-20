@@ -1,31 +1,50 @@
 {-# LANGUAGE BangPatterns #-}
 
-module GameState where
+module GameState
+  (GameState(..)
+  , initStateG
+  , gameLoop
+  , getTilesModels
+  , getWorldModels ) where
 
-import qualified Data.Map.Strict as Map
-import Data.Map (Map(..))
+import qualified Data.Map.Strict as Map (lookup
+                                        , insert
+                                        , empty)
+import Data.Map.Strict (Map(..))
+import qualified Debug.Trace as D
+import Foreign.C.Types (CInt(..))
 import Data.Int(Int32(..))
-import Render.Model (modifyModelPos, renPos
-                    , RenderModel(..), dummyModel
-                    ,  addCameraOffset
-                    , calcCameraPosition, Camera, modifyPos
-                    , checkOffset, hasOffsetChanged)
+import Data.Maybe
+import Data.IORef
+import Control.Concurrent
+
+import qualified SDL (Rectangle(..))
+import SDL (Point(P), V2(..))
+import qualified SDL.Time (Timer(..))
+
+import qualified World as W
+import  Render.Model
+        ( Camera
+        , RenderModel(..)
+        ,  modifyModelPos
+        , renPos
+        , dummyModel
+        ,  addCameraOffset
+        , calcCameraPosition
+        , modifyPos
+        , checkOffset
+        , hasOffsetChanged )
 import qualified Render.Model as RM (pos, dim)
+import qualified GameData as GD(pos, dim)
 import Engine.Datas
 import Engine.Timer
 import Engine.Collision
 import Engine.Consts
-import Data.Maybe
-import Data.IORef
-import Foreign.C.Types (CInt(..))
 import GameData
-import qualified GameData as GD(dim, pos)
-import qualified World as W
-import qualified SDL (Rectangle(..))
-import SDL (Point(P), V2(..))
-import qualified SDL.Time (Timer(..))
-import qualified Debug.Trace as D
-import Control.Concurrent
+
+
+
+
 
 data GameState = GameState
                  { level :: Int
