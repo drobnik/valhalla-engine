@@ -1,14 +1,16 @@
 sudo: false
 language: generic
 
+# Caching so the next build will be fast too.
 cache:
-    directories:
+  directories:
     - $HOME/.stack
 
+# Ensure necessary system libraries are present
 addons:
-    apt:
+  apt:
       packages:
-	- libgmp-dev
+	    - libgmp-dev
 matrix:
   include:
 #  - env: GHCVER=7.8.4 STACK_YAML=stack.yaml
@@ -28,17 +30,17 @@ matrix:
 
 before_install:
 # Download and unpack the stack executable
-  - mkdir -p ~/.local/bin
-  - export PATH=$HOME/.local/bin:$PATH
-  - travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards  --strip-components=1 -C ~/.local/bin '*/stack'
-  - stack config set system-ghc --global true
-  - export PATH=/opt/ghc/$GHCVER/bin:$PATH
+- mkdir -p ~/.local/bin
+- export PATH=$HOME/.local/bin:$PATH
+- travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards  --strip-components=1 -C ~/.local/bin '*/stack'
+- stack config set system-ghc --global true
+- export PATH=/opt/ghc/$GHCVER/bin:$PATH
 
 install:
-   - stack --no-terminal --install-ghc build --only-dependencies
+- stack --no-terminal --install-ghc build --only-dependencies
 
 script:
-   - stack --no-terminal build #test
+- stack --no-terminal build
 
 # build the haddock
 # after_success:
