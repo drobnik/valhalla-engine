@@ -7,7 +7,7 @@ cache:
 
 addons:
     apt:
-	packages:
+      packages:
 	- libgmp-dev
 matrix:
   include:
@@ -20,11 +20,11 @@ matrix:
 #		- ghc-7.8.4
   - env: GHCVER=7.10.2 STACK_YAML=stack.yaml
     addons:
-	apt:
-	    sources:
-	    - hvr-ghc
-	    packages:
-	    - ghc-7.10.2
+      apt:
+	sources:
+	  - hvr-ghc
+	  packages:
+	  - ghc-7.10.2
 
 before_install:
 # Download and unpack the stack executable
