@@ -61,3 +61,10 @@ col2 = V4 255 255 0 255 --zolty
 
 col3 :: V4 Word8
 col3 = V4 255 0 255 255 --roz
+
+-- | Collision module
+maxObj :: Int
+maxObj = 10
+
+maxLvl :: Int
+maxLvl = 5

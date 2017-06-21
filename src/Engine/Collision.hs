@@ -1,52 +1,118 @@
-module Engine.Collision where
+-- | 'Engine.Collision' exports an interface to work on collision system and
+-- provides definitions for 'QuadTree' and 'BoundingBox'.
+-- _elaborate on AABB here_. The provided algorithm for collision detection is naive
+-- and is not inteded to be used in real platorm games.
+
+module Engine.Collision
+  (
+    -- * Collision-specific types
+    BoundingBox(BoundingBox)
+  , BoxKind(..)
+  , Collidable(..)
+    -- * Collision handling
+  , makeBox
+  , checkCollisions
+    -- * Quad Tree Management
+  , newQuadtree
+  , insertElements
+  , retrieve
+  ) where
 
 import Data.Int(Int32(..))
+import Engine.Consts(maxObj
+                    , maxLvl)
 
-import qualified Debug.Trace as D
-
-maxObj :: Int
-maxObj = 10
-
-maxLvl :: Int
-maxLvl = 5
-
-data BoxKind = TileGround | TileLava | TileSpikes | CollCoin | CollHealth
-             | CollGate | CollPlayer deriving (Show, Eq, Ord)
-
-data CorrPos = CLeft | CRight | CUp | CDown
-
+-- | Type class for all game entities having 'BoundingBox'.
+-- Thus able to collide with one another.
 class Ord a => Collidable a where
   boundingBox :: a -> BoundingBox
 
+-- | Temporary data to indicate the kind of 'BoundingBox' with which the collision
+-- has occured. It is a game-specific information and should be used in collision
+-- response not here.
+data BoxKind = TileGround
+             | TileLava
+             | TileSpikes
+             | CollCoin
+             | CollHealth
+             | CollGate
+             | CollPlayer
+             deriving (Show, Eq, Ord)
+
+-- | Data to indicate where the oversection of AABB boxes occured.
+data CorrPos = CLeft
+             | CRight
+             | CUp
+             | CDown
+
+-- | For a tile-based game which uses no rotative objects,
+-- a method of Axis-Aligned Bounding Box (AABB) can be used.
+-- In this approach every entity is approximated to a box,
+-- described by two points: A(Top-Left, the lowest x and y)
+-- and B(Bottom-Right, A value with added with and height of
+-- 'BoundingBox')
 data BoundingBox = BoundingBox
-                 { topLeftA :: (Int32, Int32)
+                 { topLeftA     :: (Int32, Int32)
                  , bottomRightB :: (Int32, Int32)
                  } deriving (Eq, Ord, Show)
 
-makeBox :: Int -> Int -> Int32 -> Int32 -> BoundingBox --temp 1 arg
+-- | Construct a 'BoundingBox' with particular dimensions,
+-- at given point A
+makeBox :: Int        -- ^ x of the point A
+        -> Int        -- ^ y of the point A
+        -> Int32      -- ^ Width
+        -> Int32      -- ^ Height
+        -> BoundingBox
 makeBox x y w h = BoundingBox (x', y') ((x' + w), (y' + h))
   where x' = fromIntegral x
         y' = fromIntegral y
 
-collide :: BoundingBox -> BoundingBox -> Bool
-collide (BoundingBox (top1, left1) (bottom1, right1))
-  (BoundingBox (top2, left2) (bottom2, right2)) =
-  (not ((left2 > right1) || (right2 < left1) || (top2 > bottom1)
-      || (bottom2 < top1)))
+---------------------------------------------------------------------
+--
+-- A Quad Tree data structure is used to divide a 2D region recursively
+-- by subdividing the plane into four parts called quads.
+-- Subnodes are named accordingly as the quads in Cartesian
+-- coordinates. The collision is checked only in a particular quad
+-- where the moving object (i.e. player) is. The maximum depth can be set
+-- manually or based on the maximum number of objects in the quad.
+--
+---------------------------------------------------------------------
 
+-- | A Quad tree definition.
+data Quadtree =
+  -- | A new tree. Stores size of 2D quad and 0 level depth.
+  TEmpty Int Bounds
 
+  -- | The deepest quad. Stores current level depth, size of 2D quad
+  -- and the list of collidable onjects. They are described by
+  -- 'BoundingBox' and its 'BoxKind'.
+  | TLeaf Int Bounds [(BoundingBox, BoxKind)]
+  -- | An inner node with four children and its 'Bounds'
+  | TNode Int Bounds Quadtree Quadtree Quadtree Quadtree
+  deriving (Eq, Show)
+
+-- | The bounds of the quad given by the lowest (x, y) coordinates
+-- and dimensions.
 type Bounds = ((Int32, Int32), (Int32, Int32)) --(x, y) (w, h)
+
 data Quad = TopQuadR | BottomQuadR | TopQuadL | BottomQuadL | None
   deriving Show
--- to limit collision detection
-data Quadtree = TEmpty Int Bounds
-              | TLeaf Int Bounds [(BoundingBox, BoxKind)]
-              | TNode Int Bounds Quadtree
-                Quadtree Quadtree Quadtree
-              deriving (Eq, Show)
+
 
 newQuadtree :: Int -> Bounds -> Quadtree
 newQuadtree lvl bounds' = TEmpty lvl bounds'
+
+
+-- | A naive function for collistion detection
+collide :: BoundingBox -- ^ A box to collide with
+        -> BoundingBox -- ^ A moving box ('Player')
+        -> Bool        -- ^ Flag for triggering collision
+collide (BoundingBox (top1, left1) (bottom1, right1))
+  (BoundingBox (top2, left2) (bottom2, right2)) =
+  (not ((left2 > right1)
+         || (right2 < left1)
+         || (top2 > bottom1)
+         || (bottom2 < top1)))
 
 insert :: Int -> (BoundingBox, BoxKind) -> Quadtree -> Quadtree
 insert lvl obj@(box', k') qtree = case qtree of

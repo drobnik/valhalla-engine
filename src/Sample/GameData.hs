@@ -1,19 +1,25 @@
 {-# LANGUAGE BangPatterns #-}
 
+-- | Say something nice about this module
+--
 module GameData
   (
+    -- * Tile-specific Types
     TileMap(..)
   , Tile(..)
   , TileKind(..)
   , UnitKind(..)
-  , isEmpty
-  , empty
-  , getModels
-  , getTilesBox
+    -- * 'RenderModel' Management
   , modelPosition
+  , getModels
+    -- * Resources
   , unitPath
   , tilesData
   , tilePath
+  -- * Miscellaneous
+  , getTilesBox
+  , isEmpty
+  , empty
   ) where
 
 import Data.Int(Int32)
@@ -26,10 +32,7 @@ import SDL (V2 (..)
            , Rectangle(..)
            )
 
-import Engine.Collision (Collidable(..)
-                        , BoundingBox(BoundingBox)
-                        , BoxKind(..)
-                        )
+import Engine.Collision
 import Engine.Consts
 import Engine.Datas
 import Render.Model (modifyModelPos
@@ -89,11 +92,11 @@ type TileTexture = (TileSize
                    , [((Rectangle Int32) , TileKind)]
                    )
 
--- |Temporary function. Returns a path for tile sprites
+-- |Temporary function. Return a path for tile sprites
 tilePath :: FilePath
 tilePath = "example_data/tiles.bmp"
 
--- |Temporary function. Returns paths for game resources, based
+-- |Temporary function. Return paths for game resources, based
 -- on the UnitKind enum
 unitPath :: UnitKind
          -> FilePath
