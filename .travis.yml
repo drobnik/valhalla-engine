@@ -45,6 +45,7 @@ before_install:
 - ./configure
 - make
 - sudo make install
+- cd ..
 
 install:
 - stack --no-terminal --install-ghc build --only-dependencies
