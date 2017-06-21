@@ -1,14 +1,14 @@
 name:                valhalla-engine
-version:             0.1.0.0
-synopsis:            --TODO
-description:         --TODO
+version:             1.0
+synopsis:
+description:         A simple, purely functional game engine
 homepage:            https://github.com/drobnik/valhalla-engine#readme
 license:             BSD3
 license-file:        LICENSE
 author:              Karolina Drobnik
 maintainer:          karolinadrobnik[at]gmail[dot]com
-copyright:           2016 Karolina Drobnik
-category:            Game Engine
+copyright:           2017 Karolina Drobnik
+category:            Game
 build-type:          Simple
 -- extra-source-files:
 cabal-version:       >=1.10
@@ -32,12 +32,11 @@ library
                      , transformers, text, split
   default-language:    Haskell2010
 
--- -threaded -Wall -rtsopts -with-rtsopts=-N
 
 executable valhalla-engine-exe
   hs-source-dirs:      app
   main-is:             Main.hs
-  ghc-options:         -Wall -rtsopts -O2 -prof
+  ghc-options:         -Wall -rtsopts -O2
   build-depends:       base
                      , valhalla-engine
   default-language:    Haskell2010
