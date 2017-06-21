@@ -1,9 +1,17 @@
 {-# LANGUAGE BangPatterns #-}
 
--- |
+-- | GameState module defines core functions for controling
+-- game logic used in 'gameLoop'. They involve updating 'Tile's,
+-- 'World' reference, handling an input on high level and retrieving
+-- 'RenderModel's. More information in comments for particular functions
+-- and records.
+
 module GameState
-  (GameState(..)
+  (
+    -- * GameState Type
+    GameState(..)
   , initStateG
+    -- * Game-specific functions
   , gameLoop
   , getTilesModels
   , getWorldModels
@@ -162,15 +170,18 @@ getModelKey n modMap = case Map.lookup n modMap of
                          Just m  -> m
                          Nothing -> error "Model not found!"
 
--- |
-modifyGameState :: Map Int TileMap -> W.World -> GameState -> GameState
+-- | Final function which returns a new GameState with modified 'TileMap'.
+modifyGameState :: Map Int TileMap  -- ^ Map with modified 'TileMap' reference
+                -> W.World          -- ^ Updated world
+                -> GameState        -- ^ Old 'GameState'
+                -> GameState        -- ^ Updated 'GameState'
 modifyGameState  correctedTiles wor' (GameState lvl _ _) = GameState
                                                            { level = lvl
                                                            , world = wor'
                                                            , maps  = correctedTiles
                                                            }
 
--- |
+-- | Return size of currently played level.
 getLevelSize :: GameState -> (CInt, CInt)
 getLevelSize (GameState lvl _ maps) =
   let (TileMap w h tiles' tilesP) = case Map.lookup lvl maps of
@@ -208,12 +219,16 @@ prepack (x, y) = (fromIntegral x, fromIntegral y)
 calc :: (Double, Double) -> (Double, Double) -> (Double, Double)
 calc (x, y) (x2, y2) = (x2 - x, y2 - y)
 
--- | The core function. Defines
-gameLoop :: IORef EngineState -- ^
-         -> IORef GameState   -- ^
-         -> Double            -- ^
-         -> IO ()             -- ^
+-- | Core valhalla function. Updates of the world and the game state are made in
+-- 'gameLoop' function, which is called only once in every 'engineLoop' step.
+-- All communication between updates is made with 'engineLoop'which is later read
+-- by 'gameLoop'.
+gameLoop :: IORef EngineState -- ^ 'EngineState' reference
+         -> IORef GameState   -- ^ 'GameState' reference
+         -> Double            -- ^ Delta time
+         -> IO ()
 gameLoop es gs timeStep = do
+                   -- ^ Reading values of old GameState and updated EngineState
                        engineState <- readIORef es
                        gameState <- readIORef gs
                        let

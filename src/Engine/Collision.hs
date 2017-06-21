@@ -95,17 +95,21 @@ data Quadtree =
 -- and dimensions.
 type Bounds = ((Int32, Int32), (Int32, Int32)) --(x, y) (w, h)
 
-data Quad = TopQuadR | BottomQuadR | TopQuadL | BottomQuadL | None
+-- | Enum used for indicating where
+data Quad = TopQuadR
+          | BottomQuadR
+          | TopQuadL
+          | BottomQuadL
+          | None
   deriving Show
 
-
+-- | Initialize an empty tree with given bounds
 newQuadtree :: Int -> Bounds -> Quadtree
 newQuadtree lvl bounds' = TEmpty lvl bounds'
 
-
--- | A naive function for collistion detection
+-- | A naive function for collistion detection.
 collide :: BoundingBox -- ^ A box to collide with
-        -> BoundingBox -- ^ A moving box ('Player')
+        -> BoundingBox -- ^ A moving box - 'Player'
         -> Bool        -- ^ Flag for triggering collision
 collide (BoundingBox (top1, left1) (bottom1, right1))
   (BoundingBox (top2, left2) (bottom2, right2)) =
@@ -115,67 +119,93 @@ collide (BoundingBox (top1, left1) (bottom1, right1))
          || (bottom2 < top1)))
 
 insert :: Int -> (BoundingBox, BoxKind) -> Quadtree -> Quadtree
-insert lvl obj@(box', k') qtree = case qtree of
-  TNode lvl pos@((x, y), (w, h)) n0 n1 n2 n3
-    -> let
-    verMid = x + (w `div` 2)
-    horMid = y + (h `div` 2)
-    (BoundingBox (xA, yA) (xB, yB)) = box'
-    node0 -- if it fits, go deeper and add a value
-      | xA < horMid && yB < verMid = insert (lvl + 1) obj n0
-      | otherwise = n0 -- leave it alone
-    node1
-      | xA > horMid && yB < verMid = insert (lvl + 1) obj n1
-      | otherwise = n1
-    node2
-      | xA < horMid && yB > verMid = insert (lvl + 1) obj n2
-      | otherwise = n2
-    node3
-      | xA > x && yB > y = insert (lvl + 1) obj n3
-      | otherwise = n3
-    in TNode lvl pos node0 node1 node2 node3
+insert lvl obj@(box', k') qtree =
+  case qtree of
+    -- | If we enter the node, we want to see in which quad
+    -- we are in. To do that, we define horizontalMid and verticalMid which
+    -- stand for the positions in two dimensions.
+    TNode lvl pos@((x, y), (w, h)) n0 n1 n2 n3 ->
+      let
+        verMid = x + (w `div` 2)
+        horMid = y + (h `div` 2)
+        (BoundingBox (xA, yA) (xB, yB)) = box'
 
-  TLeaf lvl pos objs
-    | lvl >= maxLvl
-      -> TLeaf lvl pos (obj : objs)
+        -- | Check for every node if passed box fits in the bounds.
+        -- If this is the case, go deeper to add itsel
+        -- If not, simply go deeper and find a proper tree to retrieve.
+        node0
+          | xA < horMid && yB < verMid = insert (lvl + 1) obj n0
+          | otherwise = n0
+        node1
+          | xA > horMid && yB < verMid = insert (lvl + 1) obj n1
+          | otherwise = n1
+        node2
+          | xA < horMid && yB > verMid = insert (lvl + 1) obj n2
+          | otherwise = n2
+        node3
+          | xA > x && yB > y = insert (lvl + 1) obj n3
+          | otherwise = n3
+      in TNode lvl pos node0 node1 node2 node3
 
-  TEmpty lvl pos@((x, y), (w, h))
-    | lvl >= maxLvl
-      -> TLeaf lvl pos [obj]
-    | otherwise -- there is still space for more - let's make a new node (split)
-      -> let newW = w `div` 2
-             newH = h `div` 2
-             verMid = x + (w `div` 2)
-             horMid = y + (h `div` 2)
-             newNode = TNode lvl ((x, y), (w, h))
-               (TEmpty (lvl + 1) ((x, y), (newW, newH)))
-               (TEmpty (lvl + 1) (((x + horMid), y), (newW, newH)))
-               (TEmpty (lvl + 1) ((x, (y + verMid)), (newW, newH)))
-               (TEmpty (lvl + 1) (((x + horMid), (y + verMid)), (newW, newH)))
-         in insert lvl obj newNode
+    -- ^ If we are in the leaf, add 'BoundingBox' no matter what
+    TLeaf lvl pos objs -> TLeaf lvl pos (obj : objs)
 
+    -- | If we have entered an uninitialized tree, we check current depth level.
+    -- If it exceeds the limit - spawn a leaf and return
+    TEmpty lvl pos@((x, y), (w, h))
+      | lvl >= maxLvl
+        -> TLeaf lvl pos [obj]
+
+    -- | In other case we know there is still some space for more trees.
+    -- A new node is made with half size of original tree boundings.
+      | otherwise
+        -> let newW = w `div` 2
+               newH = h `div` 2
+               verMid = x + (w `div` 2)
+               horMid = y + (h `div` 2)
+               newNode = TNode lvl ((x, y), (w, h))
+                         (TEmpty (lvl + 1) ((x, y), (newW, newH)))
+                         (TEmpty (lvl + 1) (((x + horMid), y), (newW, newH)))
+                         (TEmpty (lvl + 1) ((x, (y + verMid)), (newW, newH)))
+                         (TEmpty (lvl + 1) (((x + horMid), (y + verMid))
+                                           , (newW, newH)))
+           in insert lvl obj newNode
+
+-- | An insert function for a list of 'BoundingBox'es.
 insertElements :: [(BoundingBox, BoxKind)] -> Quadtree -> Quadtree
 insertElements (x:xs) tree = insertElements xs (insert 0 x tree)
 insertElements [] tree = tree
 
--- pass a bounding box of player and get other boxes in this quad
-retrieve :: (BoundingBox, BoxKind) -> Quadtree -> [(BoundingBox, BoxKind)]
-retrieve obj@(box', k) tree = case tree of
-  TNode lvl pos@((x, y), (w, h)) n0 n1 n2 n3
-    -> let
-    verMid = x + (w `div` 2)
-    horMid = y + (h `div` 2)
-    (BoundingBox (xA, yA) (xB, yB)) = box'
-    node
-      | xA < horMid && yB < verMid = n0
-      | xA > horMid && yB < verMid = n1
-      | xA < horMid && yB > verMid = n2
-      | xA > horMid && yB > verMid = n3
-      | otherwise = TEmpty lvl pos
-    in retrieve obj node
-  TLeaf _ _ objs -> objs
-  TEmpty _ _ -> []
 
-checkCollisions :: BoundingBox -> [(BoundingBox, BoxKind)]
-                -> [(BoundingBox, BoxKind)]
+-- | Pass a bounding box of player and get other boxes in this quad
+retrieve :: (BoundingBox, BoxKind)   -- ^ 'BoundingBox' entering the quad'
+         -> Quadtree                 -- ^ Quad tree storing all 'BoundingBox'es
+         -> [(BoundingBox, BoxKind)] -- ^ 'BoundingBox'es most likely to collide with
+retrieve obj@(box', k) tree =
+  case tree of
+    -- | Check in which quater box is located. In every step recursively
+    -- divide the bounds and enter the quad which is most suitable.
+    -- Go deeper till you reach an empty tree or a leaf.
+    TNode lvl pos@((x, y), (w, h)) n0 n1 n2 n3 ->
+      let
+        verMid = x + (w `div` 2)
+        horMid = y + (h `div` 2)
+        (BoundingBox (xA, yA) (xB, yB)) = box'
+        node
+          | xA < horMid && yB < verMid = n0
+          | xA > horMid && yB < verMid = n1
+          | xA < horMid && yB > verMid = n2
+          | xA > horMid && yB > verMid = n3
+          | otherwise = TEmpty lvl pos
+      in retrieve obj node
+
+    -- ^ When a leaf is reached, function returns a list of 'BoundingBox'es
+    TLeaf _ _ objs -> objs
+    -- ^ On empty tree an empty list is returned
+    TEmpty _ _ -> []
+
+-- | Filter out the boxes which do not collide with 'Player'
+checkCollisions :: BoundingBox              -- ^ 'BoundingBox' to collide with
+                -> [(BoundingBox, BoxKind)] -- ^ List of potentially colliding boxes
+                -> [(BoundingBox, BoxKind)] -- ^ List of colliding 'BoundingBox'es
 checkCollisions pBox = filter (\(box, _) -> collide pBox box )
