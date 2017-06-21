@@ -37,7 +37,14 @@ before_install:
 - stack config set system-ghc --global true
 - export PATH=/opt/ghc/$GHCVER/bin:$PATH
 - travis_retry sudo apt-get update
-- travis_retry sudo apt-get install libsdl2
+- sudo apt-get install build-essential xorg-dev libudev-dev libts-dev libgl1-mesa-dev libglu1-mesa-dev 
+- sudo apt-get install libasound2-dev libpulse-dev libopenal-dev libogg-dev libvorbis-dev libaudiofile-dev libpng12-dev libfreetype6-dev libusb-dev libdbus-1-dev zlib1g-dev libdirectfb-dev
+- sudo apt-get install mercurial
+- hg clone http://hg.libsdl.org/SDL
+- cd SDL
+- ./configure
+- make
+- sudo make install
 
 install:
 - stack --no-terminal --install-ghc build --only-dependencies
