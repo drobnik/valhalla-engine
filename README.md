@@ -89,9 +89,9 @@ If you want to see sample ~~game*~~ graphics and movement, type:
 ```
 stack exec valhalla-engine-exe
 ```
-![Imgur](http://i.imgur.com/tesUb5b.png)
-
 \* - the game logic and collisions are turned off for now, sorry about that.
+
+![Screen](http://i.imgur.com/K00B1qT.png)
 
 
 ## Documentation
