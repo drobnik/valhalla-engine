@@ -47,5 +47,5 @@ winInfo (WindowManager _ (w, h) (x, y)) = ((fromIntegral w, fromIntegral h)
                                            , (0, 0))
 
 sampleWinManager :: WindowManager
-sampleWinManager = initWinManager "Testing.." (viewWidth, viewHeight)
+sampleWinManager = initWinManager "Most exciting game ever" (viewWidth, viewHeight)
                    (posit, posit)
