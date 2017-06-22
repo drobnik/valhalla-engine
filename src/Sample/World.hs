@@ -93,7 +93,7 @@ data Entity = Entity
               , kind   :: EntityType
               , eBox   :: BoundingBox
               , model  :: RenderModel
-              } deriving (Eq, Ord, Show)
+              } deriving (Eq, Ord)
 
 instance Collidable Entity where
   boundingBox = eBox

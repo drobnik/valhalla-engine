@@ -9,7 +9,9 @@ import Foreign.C.Types
 import Data.Word
 
 type Dimensions = (CInt, CInt)
-type CenterPosition = (CInt, CInt)
+
+-- | Upper left point of a rectangle describing game entity position
+type LTPosition = (CInt, CInt)
 
 data Texture = Texture
              { tex :: !SDL.Texture
@@ -19,13 +21,13 @@ data Texture = Texture
 noTexture :: Texture
 noTexture = undefined
 
-data RenderCom = RenderRectangle Dimensions CenterPosition
+data RenderCom = RenderRectangle Dimensions LTPosition
                | RenderColor (V4 Word8)
                | RenderRotate Float -- angle
                | RenderTranslate (Float, Float)
                | RenderScale Float
                | RenderText String --TODO
-               | RenderTexture Texture CenterPosition
+               | RenderTexture Texture LTPosition
                | RenderFrame Texture (Maybe (Rectangle CInt)) --add info about frames!
                  (Maybe (Rectangle CInt))
               deriving (Eq, Ord, Show)

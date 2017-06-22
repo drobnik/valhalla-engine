@@ -181,11 +181,11 @@ transformKeys (SDL.KeycodeDown)  = DownDir
 transformKeys (SDL.KeycodeEscape) = End
 transformKeys _ = Unknown
 
--- |
-transDirection :: (Double, Double) -- ^
-               -> [Direction]      -- ^
-               -> Double           -- ^
-               -> CenterPosition   -- ^
+-- | Change the position of the upper left point of the entity.
+transDirection :: (Double, Double)
+               -> [Direction]
+               -> Double
+               -> LTPosition
 transDirection (x',y') (x:xs) dt  = case x of
                                       LeftDir  -> transDirection
                                                   ((x' - pVelo*dt), y')
@@ -204,9 +204,9 @@ transDirection (x, y) [] _ = (CInt(floor x), CInt (floor y))
 
 -- | Temporary function. Calculates the new position based on pressed keys
 modelPosition :: ActiveKeys     -- ^ Set of pressed keys
-              -> CenterPosition -- ^ Center position in the last frame
+              -> LTPosition -- ^ Center position in the last frame
               -> Double         -- ^ Delta time
-              -> CenterPosition -- ^ New center position
+              -> LTPosition -- ^ New center position
 modelPosition keys !(u,i) dt = calcPos (u, i) (transDirection (0.0, 0.0) dirs dt)
   where
     dirs = transformSet keys transformKeys
