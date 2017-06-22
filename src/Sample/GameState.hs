@@ -231,12 +231,19 @@ gameLoop es gs timeStep = do
                    -- ^ Reading values of old GameState and updated EngineState
                        engineState <- readIORef es
                        gameState <- readIORef gs
+
                        let
+                   -- ^ Get already pressed keys
                          activeKeys = keys engineState
+
+                   -- | Create a quadtree of tuples of bounding boxes and box kinds is
+                   -- build by inserting the values returned by the
+                   -- game World data structure
                          tree = insertElements
                                 (getBoundingBoxes gameState)
                                 (newQuadtree 1 (winSetup engineState))
                          (oldWorld, oldTiles) = getWorldAndTiles gameState
+                   -- ^ Make a step in the game world and update
                          (cam'', tiles', world') = W.runWorld activeKeys
                                                  timeStep (camera engineState)
                                                  oldTiles oldWorld
@@ -245,21 +252,28 @@ gameLoop es gs timeStep = do
 
                          playerMod = W.heroM $ getPlayer gameState
                          levelDims = levelInfo gameState
+                   -- ^ Change Player position based on the previous update
                          position = modelPosition activeKeys (renPos playerMod)
                                     timeStep
                          model' = modifyModelPos playerMod position levelDims
                                   (camera engineState)
+                   -- ^ Calculate the offset of camera based on position change
                          cam' = calcCameraPosition (camera engineState) model'
                                 (getLevelSize gameState)
+                   -- ^ Apply the change in position
                          player = W.updatePlayer (getPlayer gameState) model'
                                   (prepack position)
+                   -- ^ Check for possible collisions
                          collisions = checkCollisions (W.pBox player)
                                       (retrieve (W.playerBox world) tree)
                          correctCam = checkOffset (camera engineState) cam'
+                   -- ^ Scroll the background if needed
                          tileslvl = changeTilesLvl gameState correctCam
                          tileMaps = updateMap gameState tileslvl
                          world = changeWorld gameState correctCam player
+                   -- ^ Give scheduler a rest in this frame
                        threadDelay 8000
 
+                   -- ^ Save the values and return
                        writeIORef gs (modifyGameState tileMaps world gameState)
                        writeIORef es engineState{ camera = cam' }
