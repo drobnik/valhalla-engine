@@ -30,7 +30,7 @@ by [HGE2D](https://github.com/I3ck/HGE2D/blob/master/src/HGE2D/Datas.hs#L71-L84
 
 
 The project was developed using [stack](https://docs.haskellstack.org/en/stable/README/
-"stack") tool and GHC 7.10.3 compiler [TODO: Check against other versions]. \
+"stack") tool and GHC 7.10.3 compiler.  **[TODO: Check against other versions]**. \
 Rendering pipeline and graphics components are programmed using
 [SDL2](https://hackage.haskell.org/package/sdl2-2.2.0/docs/SDL.html "SDL2 docs")
 Haskell bindings.
@@ -92,10 +92,6 @@ stack exec valhalla-engine-exe
 \* - the game logic and collisions are turned off for now, sorry about that.
 
 ![Screen](http://i.imgur.com/K00B1qT.png)
-
-
-## Documentation
-To generate Haddock for this project, simply type: `stack haddock`.
 
 
 ## 'Valhalla in less than 5 minutes' tour
