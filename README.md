@@ -1,7 +1,7 @@
 # valhalla-engine [![Build Status](https://travis-ci.com/drobnik/valhalla-engine.svg?token=WzzDh4VCxkMCN8q8FX4r&branch=master)](https://travis-ci.com/drobnik/valhalla-engine)
 ### Purely functional 2D game framework sprinkled with _some ugly IORefs_
 
-This is an implementation of 2D tile-based game engine in Haskell done as
+This is the implementation of 2D tile-based game engine in Haskell done as
 a part of my Bachelor Thesis *"Implementing 2D Game Engine in Haskell"*.
 Game events and engine loop are implemented using the concept of monads and mutable [IORef](https://hackage.haskell.org/package/base-4.9.0.0/docs/Data-IORef.html "IORef docs")
 references.
@@ -89,9 +89,7 @@ If you want to see sample ~~game*~~ graphics and movement, type:
 ```
 stack exec valhalla-engine-exe
 ```
-![Sample game screen][screen]
-
-[screen]: https://lh3.googleusercontent.com/w0ncCzuZ-miOYxtv0OWwF6DCBavFhvt_0Rz_VMIo8dQKaYQ-6Cbzs27DqZqQu-CX_8aAP2xS2VPhwlayAAIWOo6QD9XSOF2zgek8Z2i_8Su1oAjNtACW1P1mZiE8K-ixzTz4NclzgIuQshLo-lnu1PaX9QIU5HDgJQWhP_8KuG2BHXQD6O5vlZrmZCryFO883RVD032Q6c9fMbHFZaeEEk4vlnDsu76dvaW1cHXLCFxlj9kZsi5tGEVvLWgGWtgjZN8BG0Ao6M04_vWxgmD6owiL5_5rS5JhESJL8AY6YhEVk0aIPE0215Xll6LkSguQhC5CuYQk5-UrY1yG4TL7QsA2c5tbeVgMOYcPAi3czwGBsg7LrEzdPn6k4CPQw5Ad3kxQTLl7HOw7KINdAahI-mU3_b0KeUOpXJfUOBe-HWyoiq8dNMy_B_dS6QAkeb8gJqS8se30cqhFEP7pPRwyegbf5d-_eI9naaJO0DRDHM8v5lVdi8ZaHhEsM5fwLzqZ_z4czqx_G9Qav1bbVTmeln981i-028v8TDkywa-05Z_3RErgQE4hmAAijcSpdCzGtNCUAoUAEh90PGe085J9IlQ1bC9cjLiDBgvt-32QKoRtXP8utEv-=w639-h500-no "valhalla sample game"
+![Imgur](http://i.imgur.com/tesUb5b.png)
 
 \* - the game logic and collisions are turned off for now, sorry about that.
 
