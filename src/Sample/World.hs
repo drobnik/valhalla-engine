@@ -74,7 +74,7 @@ instance Collidable Player where
 
 -- |  Data which describes a state of a part of the game with
 -- a map of level entities, how many points has player earned
--- or information about the level completion.
+-- and information about the level completion.
 data Level = Level
              { collectables :: Map Int Entity
              , score        :: Int             -- ^ Score for current level
@@ -165,14 +165,14 @@ updateWorld (World lvls liv p scr) cam play num = (World lvls' liv play scr)
 updateLevels :: Map Int Level -> Level -> Int -> Map Int Level
 updateLevels lvlmaps upLvl num = Map.insert num upLvl lvlmaps
 
--- | Apply 'changeUnits' to the level
+-- | Apply 'changeUnits' to the level.
 changeLevel :: Map Int Level -> Camera -> Int -> Level
 changeLevel level cam lvl = changeUnits cam lvlForUpdate
   where lvlForUpdate = case Map.lookup lvl level of
                          Just lvl' -> lvl'
                          Nothing   -> error "Contents for this level not found!"
 
--- | Change a relative position of entities in current level
+-- | Change a relative position of entities in current level.
 changeUnits :: Camera -> Level -> Level
 changeUnits cam (Level coll se' toEnd isOpen) = Level
                                                 {collectables =
@@ -182,11 +182,11 @@ changeUnits cam (Level coll se' toEnd isOpen) = Level
                                                 , isGateOpen = isOpen
                                                 }
 
--- | Map 'changeEnt' funtion to every collectable entity
+-- | Map 'changeEnt' funtion to every collectable entity.
 modifyEntities :: Camera -> Map Int (Entity) -> Map Int (Entity)
 modifyEntities cam collectables = Map.map (changeEnt cam) collectables
 
--- | Constuct a new entity based on 'Camera' offset
+-- | Constuct a new entity based on 'Camera' offset.
 changeEnt :: Camera -> Entity -> Entity
 changeEnt (SDL.Rectangle (P(V2 camX camY)) s)
   (Entity d val p k bbox rm@(RenderModel _ (x, y) _ _ _ instr)) =
@@ -202,32 +202,39 @@ changeEnt (SDL.Rectangle (P(V2 camX camY)) s)
   }
   where (x', y') = (fromIntegral (x - camX), fromIntegral (y - camY))
 
+-- | Return 'BoundingBox'es of entites in current level.
 getEntitiesBoxes ::  World -> Int -> [(BoundingBox, BoxKind)]
 getEntitiesBoxes (World levels _ _ _) lvl = zip boxes kinds
   where entities' = elems (collectables level)
         level = case Map.lookup (lvl-1) levels of
-          Just level' -> level'
-          Nothing -> error "Level with such index not found"
+                  Just level' -> level'
+                  Nothing     -> error "Level with such index not found"
         (boxes, kinds) = enBoxKind entities' ([], [])
 
+-- | Return 'BoundingBox' of a player.
 playerBox :: World -> (BoundingBox, BoxKind)
 playerBox (World _ _ player _) = (pBox player, CollPlayer)
 
+-- | Recurisively apply function for returing 'BoundingBox'es.
 enBoxKind :: [Entity] -> ([BoundingBox], [BoxKind])
           -> ([BoundingBox], [BoxKind])
 enBoxKind (e:es) (box, kind) = enBoxKind es ((box':box), (kind':kind))
   where (box', kind') = mapBox e
 enBoxKind [] boxes = boxes
 
+-- | Increment life counter and return a new 'Player' reference.
 heal :: Player -> Player
 heal p@(Player _ l _ _ _ ha) = p{ lives = l + 1
                                 , harm = False
                                 }
+
+-- | Increment life counter and return a new 'Player' reference.
 loseLife :: Player -> Player
-loseLife p@(Player _ lives' _ _ _ _) --later: check harm
-  | lives' > 0 = p {lives = lives' - 1}
+loseLife p@(Player _ lives' _ _ _ _)
+  | lives' > 0 && harm p = p {lives = lives' - 1}
   | otherwise = p
 
+-- | Create a tuple to insert an entity in 'Quadtree'.
 mapBox :: Entity -> (BoundingBox, BoxKind)
 mapBox (Entity _ _ _ kind box _) = (box, check kind)
   where check k = case k of
@@ -235,10 +242,18 @@ mapBox (Entity _ _ _ kind box _) = (box, check kind)
                     Collect -> CollCoin
                     Gate -> CollGate
 
-runWorld :: ActiveKeys -> Double -> Camera -> TileMap -> World
-         -> WinSetup -> [(BoundingBox, BoxKind)] -> (Camera, TileMap, World)
+-- | Core function in 'World' definition. Apply updates on 'Camera',
+-- current 'TileMap' and 'World' when any input is recieved.
+runWorld :: ActiveKeys               -- ^ Set of pressed keys
+         -> Double                   -- ^ Delta time
+         -> Camera                   -- ^ Camera from previous frame
+         -> TileMap                  -- ^ Tile map for current level
+         -> World                    -- ^ Old world
+         -> WinSetup                 -- ^ Window for any 'WindowManager' updates
+         -> [(BoundingBox, BoxKind)] -- ^ Current Quad tree
+         -> (Camera, TileMap, World) -- ^ Updated game objects
 runWorld keys' dt oldCam oldTiles oldWorld winSet boundingBoxes
-  | Set.null keys' = (oldCam, oldTiles, oldWorld)
+  | Set.null keys' = (oldCam, oldTiles, oldWorld) -- ^ Nothing changes
   | otherwise = let
       tree = insertElements boundingBoxes (newQuadtree 1 winSet)
       updatedCam = undefined

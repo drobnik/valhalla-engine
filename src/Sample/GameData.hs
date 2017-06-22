@@ -1,7 +1,7 @@
 {-# LANGUAGE BangPatterns #-}
 
--- | Say something nice about this module
---
+-- | 'GameData' module provides definitions for basic types used in game 'World'
+-- entities, basic 'RenderModel' management and resources.
 module GameData
   (
     -- * Tile-specific Types
