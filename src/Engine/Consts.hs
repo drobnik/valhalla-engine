@@ -1,12 +1,14 @@
+-- | Module which defines sample constants for rendering,
+-- tile maps and game logic. It is quite mixed for now, should
+-- be cleaned up in the future.
 module Engine.Consts where
 
-import Graphics.Rendering.OpenGL
 import Data.Int
 import Data.Word
-import SDL.Vect
 import Foreign.C.Types
 
--- plenty of useful, engine specific constants
+import SDL.Vect
+
 
 viewHeight ::CInt
 viewHeight = 480
@@ -14,11 +16,27 @@ viewHeight = 480
 viewWidth :: CInt
 viewWidth = 640
 
+-- | Window initial position
 posit :: CInt
 posit = 100
 
 startTime :: Double
 startTime = 0.0
+
+-- | A fixed timestep.
+targetElapsedTime :: Double
+targetElapsedTime = 0.01666
+
+msTargetElapsedTime :: Double
+msTargetElapsedTime = targetElapsedTime * 1000
+
+---------------------------------------------
+--
+-- Game specific constants
+--
+---------------------------------------------
+tileDim :: (CInt, CInt)
+tileDim = (32, 32)
 
 tileSize :: Int32
 tileSize = 32
@@ -29,40 +47,11 @@ tileSInt = fromIntegral tileSize
 pVelo :: Double
 pVelo = 1040
 
--- | A fixed timestep.
-targetElapsedTime :: Double
-targetElapsedTime = 0.01666
-
-msTargetElapsedTime :: Double
-msTargetElapsedTime = targetElapsedTime * 1000
-
---TEMP
-tileDim :: (CInt, CInt)
-tileDim = (50, 50)
-
-pos1 :: (CInt, CInt)
-pos1 = (10, 10)
-
-pos2 :: (CInt, CInt)
-pos2 = (30, 340)
-
-pos3 :: (CInt, CInt)
-pos3 = (100, 80)
-
---TEMP! for square movement
-un :: CInt
-un = 10
--- move to render!
-col1 :: V4 Word8
-col1 = V4 255 255 255 255 --bial
-
-col2 :: V4 Word8
-col2 = V4 255 255 0 255 --zolty
-
-col3 :: V4 Word8
-col3 = V4 255 0 255 255 --roz
-
--- | Collision module
+---------------------------------------------
+--
+-- Collision module constants
+--
+---------------------------------------------
 maxObj :: Int
 maxObj = 10
 

@@ -153,9 +153,9 @@ sampleInstr dim pos color = [RenderColor color, (RenderRectangle dim pos)]
 dummyModel :: RenderModel
 dummyModel = RenderModel
             { dim = tileDim
-            , pos = pos3
+            , pos = (100, 80)
             , path = undefined
             , texture = undefined
             , modelColor = V4 0 0 0 255
-            , renderInstr = sampleInstr tileDim pos3 col3
+            , renderInstr = sampleInstr tileDim (100, 80) (V4 255 0 255 255)
             }

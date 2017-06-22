@@ -3,7 +3,11 @@
 -- | This module provides rendering utilities such as presenting
 -- rendering actions in the window, SDL and Renderer context initialization
 -- and rendering commands interpretation.
-module Render.Utils where
+module Render.Utils
+  ( -- * Rendering Utilities
+    renderPipeline
+  ,  initSDL
+  , renderInit) where
 
 import qualified SDL
 import SDL.Vect
@@ -39,7 +43,7 @@ renderPipeline ren gs = do
     mapM_ (renderModel ren) (getWorldModels gs)  -- ^ Render game entities
 
     SDL.rendererDrawColor ren $= V4 10 10 10 255 -- ^ Background color
-    SDL.present $! ren                           -- ^ Show the results
+    SDL.present $! ren                           -- ^ Flush renderer content to the buffer
 
 -- | Interpret rendering commands stored in 'RenderModel' reference.
 -- This function is mapped onto list of 'RenderModel's.
