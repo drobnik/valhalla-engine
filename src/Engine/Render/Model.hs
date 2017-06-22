@@ -58,7 +58,7 @@ draw (RenderModel _ _ _ _ _ render) = render
 
 -- | Return top-left point of the model as its position.
 renPos :: RenderModel -> LTPosition
-  renPos (RenderModel _ pos _ _ _ _) = pos
+renPos (RenderModel _ pos _ _ _ _) = pos
 
 -- | Change the position of game entity's graphic representation.
 -- Before doing that, check if it would stay within the level size

@@ -11,9 +11,7 @@ import Engine.Consts
 import Render.Model
 import GameState
 import Control.Concurrent
-import qualified Debug.Trace as D
--- wczytywanie dla pierwszego jest przesuniete!
--- wczytalo tylko jedna linijke tekstur!
+
 
 initSDL :: IO ()
 initSDL = do
